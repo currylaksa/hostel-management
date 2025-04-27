@@ -1,46 +1,71 @@
 <?php
 session_start();
+require_once 'db_connection.php';
 
-// Admin credentials
-$valid_admin = [
-    "username" => "admin",
-    "password" => "12345"
-];
-
-// Student credentials (in real application, this should be in a database)
-$valid_students = [
-    [
-        "username" => "student1",
-        "password" => "student123"
-    ]
-];
+$error = false;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $username = $_POST["username"] ?? '';
     $password = $_POST["password"] ?? '';
     $role = $_POST["role"] ?? '';
 
-    if ($role === "admin") {
-        if ($username === $valid_admin["username"] && $password === $valid_admin["password"]) {
-            $_SESSION["user"] = $username;
-            $_SESSION["role"] = "admin";
-            header("Location: admin_dashboard.php");
-            exit();
-        }
-    } else if ($role === "student") {
-        foreach ($valid_students as $student) {
-            if ($username === $student["username"] && $password === $student["password"]) {
-                $_SESSION["user"] = $username;
-                $_SESSION["role"] = "student";
-                header("Location: student_dashboard.php");
-                exit();
+    // Validate login credentials
+    if (!empty($username) && !empty($password) && !empty($role)) {
+        if ($role === "admin") {
+            $stmt = $conn->prepare("SELECT id, name, password FROM admins WHERE username = ?");
+            $stmt->bind_param("s", $username);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows === 1) {
+                $admin = $result->fetch_assoc();
+                
+                // Verify password
+                if (password_verify($password, $admin['password'])) {
+                    // Set session variables
+                    $_SESSION["user_id"] = $admin['id'];
+                    $_SESSION["user"] = $admin['name'];
+                    $_SESSION["role"] = "admin";
+                    
+                    // Redirect to dashboard
+                    header("Location: admin_dashboard.php");
+                    exit();
+                }
+            }
+        } else if ($role === "student") {
+            $stmt = $conn->prepare("SELECT id, name, password FROM students WHERE username = ?");
+            $stmt->bind_param("s", $username);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows === 1) {
+                $student = $result->fetch_assoc();
+                
+                // Verify password
+                if (password_verify($password, $student['password'])) {
+                    // Set session variables
+                    $_SESSION["user_id"] = $student['id'];
+                    $_SESSION["user"] = $student['name'];
+                    $_SESSION["role"] = "student";
+                    
+                    // Redirect to dashboard
+                    header("Location: student_dashboard.php");
+                    exit();
+                }
             }
         }
+        
+        // If we reach here, authentication failed
+        $error = true;
+    } else {
+        $error = true;
     }
     
-    // If no match found
-    header("Location: index.html?error=1");
-    exit();
+    // If error, redirect back to index with error parameter
+    if ($error) {
+        header("Location: index.php?error=1");
+        exit();
+    }
 }
 ?>
 
