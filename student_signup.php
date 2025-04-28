@@ -173,7 +173,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 </h4>
                                 <div class="section-content">
                                     <div class="row">
-                                        <div class="col-md-9">
+                                        <div class="col-md-12">
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
@@ -208,17 +208,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                                         <small class="form-text">Format: XXXXXX-XX-XXXX</small>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="col-md-3">
-                                            <div class="profile-upload-container">
-                                                <label for="profile_pic">Profile Picture</label>
-                                                <div id="profile-preview-container" class="mt-2">
-                                                    <img src="uploads/profile_pics/default.png" class="profile-preview" alt="Profile Preview">
-                                                </div>
-                                                <input type="file" name="profile_pic" id="profile_pic" class="form-control-file mt-2">
-                                                <small class="form-text">Max 2MB (JPG, PNG)</small>
                                             </div>
                                         </div>
                                     </div>

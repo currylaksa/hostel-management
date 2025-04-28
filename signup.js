@@ -21,16 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Profile picture preview
-    const profilePicInput = document.getElementById('profile_pic');
-    const previewContainer = document.getElementById('profile-preview-container');
-    
-    if (profilePicInput && previewContainer) {
-        profilePicInput.addEventListener('change', function() {
-            showImagePreview(this, previewContainer);
-        });
-    }
-    
     // Form section navigation
     const formSections = document.querySelectorAll('.form-section');
     const nextButtons = document.querySelectorAll('.btn-next');
@@ -98,27 +88,6 @@ function checkPasswordMatch(password, confirmPassword) {
     } else {
         matchIndicator.className = 'text-danger';
         matchIndicator.textContent = 'Passwords do not match';
-    }
-}
-
-// Profile picture preview
-function showImagePreview(input, previewContainer) {
-    if (input.files && input.files[0]) {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            let img = previewContainer.querySelector('img');
-            
-            if (!img) {
-                img = document.createElement('img');
-                img.className = 'profile-preview';
-                previewContainer.appendChild(img);
-            }
-            
-            img.src = e.target.result;
-        }
-        
-        reader.readAsDataURL(input.files[0]);
     }
 }
 
