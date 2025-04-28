@@ -1,0 +1,280 @@
+/* Signup Forms Styling for MMU Hostel Management System */
+
+/* Card styling */
+.signup-card {
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.signup-card .card-header {
+    border-radius: 8px 8px 0 0;
+    padding: 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.signup-card .card-body {
+    padding: 20px;
+}
+
+/* Form section styling */
+.form-section {
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-left: 4px solid #ddd;
+}
+
+.admin-section {
+    border-left-color: #007bff;
+}
+
+.student-section {
+    border-left-color: #28a745;
+}
+
+.visitor-section {
+    border-left-color: #ffc107;
+}
+
+.emergency-section {
+    border-left-color: #dc3545;
+}
+
+/* Section headers */
+.section-header {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+/* Form controls styling */
+.form-control {
+    border-radius: 4px;
+    padding: 10px 15px;
+    height: auto;
+    border: 1px solid #ddd;
+    transition: all 0.3s;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.2);
+    border-color: #80bdff;
+}
+
+/* Custom form labels */
+.form-group label {
+    font-weight: 500;
+    margin-bottom: 7px;
+    color: #495057;
+}
+
+/* Required field indicator */
+.required-field::after {
+    content: "*";
+    color: #dc3545;
+    margin-left: 4px;
+}
+
+/* Submit button styling */
+.btn-signup {
+    padding: 10px 30px;
+    border-radius: 30px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 10px;
+    transition: all 0.3s;
+}
+
+.btn-admin {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-admin:hover {
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+
+.btn-student {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-student:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+.btn-visitor {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+.btn-visitor:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+    color: #212529;
+}
+
+/* Profile picture preview */
+.profile-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin: 10px auto;
+    display: block;
+    object-fit: cover;
+    border: 3px solid #f8f9fa;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.profile-upload-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .signup-card .card-body {
+        padding: 15px;
+    }
+    
+    .form-section {
+        padding: 15px;
+    }
+
+    .row {
+        margin-right: -5px;
+        margin-left: -5px;
+    }
+
+    .col-md-3, .col-md-4, .col-md-6, .col-md-9 {
+        padding-right: 5px;
+        padding-left: 5px;
+    }
+
+    .profile-upload-container {
+        margin-top: 15px;
+    }
+
+    /* Stack columns on mobile */
+    .col-md-3, .col-md-4, .col-md-6, .col-md-9 {
+        width: 100%;
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+/* Make content scrollable */
+body {
+    position: relative;
+    min-height: 100vh;
+    overflow-y: auto !important;
+}
+
+.container {
+    max-width: 1200px;
+    padding: 15px;
+    margin: 0 auto;
+}
+
+.signup-container {
+    min-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Fix height issues */
+html, body {
+    height: auto !important;
+    overflow-y: auto !important;
+    scroll-behavior: smooth;
+}
+
+/* Animation effects */
+.fade-in {
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Custom checkbox and radio styling */
+.custom-control-label::before {
+    border: 1px solid #adb5bd;
+}
+
+.custom-checkbox .custom-control-input:checked ~ .custom-control-label::before {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+/* Form navigation links */
+.form-nav-links {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.form-nav-links a {
+    margin: 0 10px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+/* Helper text */
+.form-text {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+/* Form progressive disclosure */
+.collapsible-section .section-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.collapsible-section.active .section-content {
+    max-height: 1000px;
+}
+
+/* Back to top button */
+.back-to-top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    text-align: center;
+    line-height: 40px;
+    z-index: 999;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.back-to-top:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.back-to-top.visible {
+    display: block;
+    animation: fadeIn 0.3s;
+}
