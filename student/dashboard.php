@@ -23,11 +23,7 @@ require_once '../shared/includes/sidebar-student.php';
         <div class="user-info">
             <?php 
             if (isset($_SESSION["profile_image"]) && !empty($_SESSION["profile_image"])) {
-                if (strpos($_SESSION["profile_image"], '../uploads/profile_pictures/') === 0) {
-                    echo '<img src="' . $_SESSION["profile_image"] . '" alt="Student Profile">';
-                } else {
-                    echo '<img src="../uploads/profile_pictures/' . $_SESSION["profile_image"] . '" alt="Student Profile">';
-                }
+                echo '<img src="../uploads/profile_pictures/' . $_SESSION["profile_image"] . '" alt="Student Profile">';
             } else {
                 echo '<img src="../uploads/profile_pictures/default_student.png" alt="Student Profile">';
             }
@@ -130,7 +126,7 @@ require_once '../shared/includes/sidebar-student.php';
             </div>
         </div>
 
-        <!-- Quick Services -->
+        <!-- Campus Services -->
         <div class="card">
             <div class="card-header">
                 <div class="card-icon">

@@ -13,7 +13,11 @@ if (!isset($pageTitle)) {
     <title><?php echo $pageTitle; ?></title>
     
     <!-- Common CSS -->
-    <link rel="stylesheet" href="../../shared/css/style.css">
+    <link rel="stylesheet" href="<?php 
+    // Determine correct path based on the current directory
+    $current_dir = basename(dirname($_SERVER['PHP_SELF']));
+    echo $current_dir === 'includes' ? '../css/style.css' : '../shared/css/style.css'; 
+    ?>">
     
     <!-- Role-specific CSS, should be defined in the including file -->
     <?php if (isset($additionalCSS) && is_array($additionalCSS)): ?>
