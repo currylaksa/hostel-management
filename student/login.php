@@ -10,22 +10,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     
     // Validate login credentials
     if (!empty($username) && !empty($password)) {
-        $stmt = $conn->prepare("SELECT id, name, username, password, profile_pic FROM admins WHERE username = ?");
+        $stmt = $conn->prepare("SELECT id, name, username, password, profile_pic FROM students WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
         
         if ($result->num_rows === 1) {
-            $admin = $result->fetch_assoc();
+            $student = $result->fetch_assoc();
             
             // Verify password
-            if (password_verify($password, $admin['password'])) {
+            if (password_verify($password, $student['password'])) {
                 // Set session variables
-                $_SESSION["user_id"] = $admin['id'];
-                $_SESSION["user"] = $admin['username'];
-                $_SESSION["fullname"] = $admin['name'];
-                $_SESSION["role"] = "admin";
-                $_SESSION["profile_image"] = $admin['profile_pic'] ?? null;
+                $_SESSION["user_id"] = $student['id'];
+                $_SESSION["user"] = $student['username'];
+                $_SESSION["fullname"] = $student['name'];
+                $_SESSION["role"] = "student";
+                $_SESSION["profile_image"] = $student['profile_pic'] ?? null;
                 
                 // Redirect to dashboard
                 header("Location: dashboard.php");
@@ -47,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - MMU Hostel Management System</title>
+    <title>Student Login - MMU Hostel Management System</title>
     <link rel="stylesheet" href="../shared/css/style.css">
     <link rel="stylesheet" href="css/login.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
@@ -57,8 +57,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <div class="row">
             <div class="col-md-6 offset-md-3">
                 <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h3 class="text-center">Admin Login</h3>
+                    <div class="card-header bg-success text-white">
+                        <h3 class="text-center">Student Login</h3>
                     </div>
                     <div class="card-body">
                         <?php if ($error): ?>
@@ -85,7 +85,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             </div>
                             
                             <div class="form-group text-center">
-                                <button type="submit" class="btn btn-primary btn-lg">Login</button>
+                                <button type="submit" class="btn btn-success btn-lg">Login</button>
                             </div>
                             
                             <div class="text-center">

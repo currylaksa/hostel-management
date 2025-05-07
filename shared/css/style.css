@@ -1,0 +1,125 @@
+/* style.css - Common styles for MMU Hostel Management System */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+  
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: #333;
+}
+  
+.login-container {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    width: 380px;
+    text-align: center;
+}
+  
+.login-logo {
+    margin-bottom: 30px;
+}
+  
+.login-logo h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+  
+.login-logo p {
+    color: #777;
+    font-size: 14px;
+}
+  
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+  
+.input-group input {
+    display: block;
+    width: 100%;
+    padding: 14px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+  
+.input-group input:focus {
+    outline: none;
+    border-color: #6e8efb;
+    box-shadow: 0 0 0 2px rgba(110, 142, 251, 0.2);
+}
+  
+.input-group select {
+    display: block;
+    width: 100%;
+    padding: 14px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23777' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+  
+.input-group select:focus {
+    outline: none;
+    border-color: #6e8efb;
+    box-shadow: 0 0 0 2px rgba(110, 142, 251, 0.2);
+}
+  
+.login-btn {
+    background: linear-gradient(to right, #6e8efb, #a777e3);
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 16px;
+    font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+  
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+  
+.login-btn:active {
+    transform: translateY(0);
+}
+  
+.error-message {
+    color: #e74c3c;
+    margin-top: 15px;
+    font-size: 14px;
+    background-color: rgba(231, 76, 60, 0.1);
+    padding: 10px;
+    border-radius: 5px;
+    display: none;
+}
+  
+.error-message.visible {
+    display: block;
+}
+  
+.footer-text {
+    margin-top: 20px;
+    font-size: 13px;
+    color: #777;
+}

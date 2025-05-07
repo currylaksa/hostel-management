@@ -1,10 +1,14 @@
 <?php
+// Common logout script for all user roles
 session_start();
+
+// Clear all session variables
+$_SESSION = array();
 
 // Destroy the session
 session_destroy();
 
-// Redirect to the homepage
+// Redirect to the home page
 header("Location: index.php");
 exit();
 ?>

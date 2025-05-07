@@ -7,7 +7,7 @@ session_start();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MMU Hostel Management System</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="shared/css/style.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
@@ -71,6 +71,16 @@ session_start();
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        
+        /* Make the cards stack on mobile */
+        @media (max-width: 768px) {
+            .role-container {
+                flex-direction: column;
+            }
+            .role-card {
+                margin: 10px 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -98,23 +108,23 @@ session_start();
                     <i class="fas fa-user-shield icon admin-icon"></i>
                     <h3>Admin</h3>
                     <p>Hostel administration and management</p>
-                    <a href="admin_login.php" class="btn btn-primary btn-block">Login</a>
-                    <a href="admin_signup.php" class="btn btn-outline-primary btn-block">Sign Up</a>
+                    <a href="admin/login.php" class="btn btn-primary btn-block">Login</a>
+                    <a href="admin/signup.php" class="btn btn-outline-primary btn-block">Sign Up</a>
                 </div>
                 
                 <div class="role-card">
                     <i class="fas fa-user-graduate icon student-icon"></i>
                     <h3>Student</h3>
                     <p>Hostel resident access</p>
-                    <a href="student_login.php" class="btn btn-success btn-block">Login</a>
-                    <a href="student_signup.php" class="btn btn-outline-success btn-block">Sign Up</a>
+                    <a href="student/login.php" class="btn btn-success btn-block">Login</a>
+                    <a href="student/signup.php" class="btn btn-outline-success btn-block">Sign Up</a>
                 </div>
                 
                 <div class="role-card">
                     <i class="fas fa-user-friends icon visitor-icon"></i>
                     <h3>Visitor</h3>
                     <p>Register for a visit</p>
-                    <a href="visitor_registration.php" class="btn btn-warning btn-block">Register Visit</a>
+                    <a href="visitor/registration.php" class="btn btn-warning btn-block">Register Visit</a>
                 </div>
             </div>
             
@@ -124,6 +134,7 @@ session_start();
         </div>
     </div>
 
+    <script src="shared/js/script.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
