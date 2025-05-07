@@ -1,4 +1,4 @@
-/* Admin Login Page Styles */
+/* Admin Signup Page Styles */
 body {
     background-color: #f5f5f5;
     padding-top: 20px;
@@ -43,6 +43,34 @@ a {
 a:hover {
     color: #0056b3;
     text-decoration: none;
+}
+
+/* Password strength indicator */
+.password-strength {
+    height: 5px;
+    margin-top: 5px;
+    border-radius: 5px;
+    transition: all 0.3s;
+}
+
+.weak {
+    width: 25%;
+    background: #dc3545;
+}
+
+.medium {
+    width: 50%;
+    background: #ffc107;
+}
+
+.strong {
+    width: 75%;
+    background: #28a745;
+}
+
+.very-strong {
+    width: 100%;
+    background: #20c997;
 }
 
 /* Additional responsive styles */

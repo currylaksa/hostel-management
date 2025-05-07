@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'db_connection.php';
+require_once '../shared/includes/db_connection.php';
 
 $errors = [];
 $success = false;
@@ -49,8 +49,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <title>Visitor Registration - MMU Hostel Management System</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="signup.css">
+    <link rel="stylesheet" href="../shared/css/style.css">
+    <link rel="stylesheet" href="css/registration.css">
 </head>
 <body>
     <div class="container mt-3 mb-3 signup-container">
@@ -82,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 <p class="mb-0">Thank you for registering as a visitor!</p>
                                 <hr>
                                 <div class="text-center mt-3">
-                                    <a href="index.php" class="btn btn-outline-success"><i class="fas fa-home mr-2"></i>Return to Home</a>
+                                    <a href="../index.php" class="btn btn-outline-success"><i class="fas fa-home mr-2"></i>Return to Home</a>
                                 </div>
                             </div>
                         <?php endif; ?>
@@ -93,7 +93,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <div class="progress-bar bg-warning" id="form-progress" role="progressbar" style="width: 0%"></div>
                         </div>
                         
-                        <form action="visitor_registration.php" method="POST" class="needs-validation" novalidate id="signup-form">
+                        <form action="registration.php" method="POST" class="needs-validation" novalidate id="signup-form">
                             <!-- Visitor Information Section -->
                             <div class="form-section visitor-section collapsible-section active" data-section="1">
                                 <h4 class="section-header">
@@ -291,7 +291,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             </div>
                             
                             <div class="form-nav-links">
-                                <p><a href="index.php"><i class="fas fa-home mr-1"></i>Back to Home</a></p>
+                                <p><a href="../index.php"><i class="fas fa-home mr-1"></i>Back to Home</a></p>
                             </div>
                         </form>
                         <?php endif; ?>
@@ -304,7 +304,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="signup.js"></script>
+    <script src="../shared/js/script.js"></script>
     <script>
         // Section navigation
         document.addEventListener('DOMContentLoaded', function() {
