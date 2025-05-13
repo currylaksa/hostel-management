@@ -29,7 +29,7 @@ if (isset($_SESSION['form_submitted']) && $_SESSION['form_submitted'] === true) 
     exit();
 }
 
-require_once "db_connection.php";
+require_once "../shared/includes/db_connection.php";
 
 // Handle form submission first
 $message = "";
@@ -290,9 +290,9 @@ if (isset($_SESSION["profile_message"])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MMU Hostel Management - Admin Profile</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="admin_dashboard.css">
-    <link rel="stylesheet" href="admin_profile.css">
+    <link rel="stylesheet" href="../shared/css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="profile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -302,9 +302,8 @@ if (isset($_SESSION["profile_message"])) {
             <div class="sidebar-header">
                 <h2>MMU Hostel</h2>
                 <p>Admin Portal</p>
-            </div>
-            <div class="sidebar-menu">
-                <a href="admin_dashboard.php" class="menu-item">
+            </div>            <div class="sidebar-menu">
+                <a href="dashboard.php" class="menu-item">
                     <i class="fas fa-tachometer-alt"></i> Dashboard
                 </a>
                 
