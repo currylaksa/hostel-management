@@ -8,21 +8,30 @@ $success = false;
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Get form data
     $name = $_POST['name'] ?? '';
-    $username = $_POST['username'] ?? '';
-    $student_id = $_POST['student_id'] ?? '';
+    $gender = $_POST['gender'] ?? '';
+    $dob = $_POST['dob'] ?? '';
+    $ic_number = $_POST['ic_number'] ?? '';
+    $course = $_POST['course'] ?? '';
+    $contact_no = $_POST['contact_no'] ?? '';
     $email = $_POST['email'] ?? '';
-    $phone = $_POST['phone'] ?? '';
-    $faculty = $_POST['faculty'] ?? '';
-    $program = $_POST['program'] ?? '';
+    $citizenship = $_POST['citizenship'] ?? '';
+    $address = $_POST['address'] ?? '';
+    $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
     
     // Validate form data
     if (empty($name)) $errors[] = "Name is required";
-    if (empty($username)) $errors[] = "Username is required";
-    if (empty($student_id)) $errors[] = "Student ID is required";
+    if (empty($gender)) $errors[] = "Gender is required";
+    if (empty($dob)) $errors[] = "Date of Birth is required";
+    if (empty($ic_number)) $errors[] = "IC Number is required";
+    if (empty($course)) $errors[] = "Course is required";
+    if (empty($contact_no)) $errors[] = "Contact Number is required";
     if (empty($email)) $errors[] = "Email is required";
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "Invalid email format";
+    if (empty($citizenship)) $errors[] = "Citizenship is required";
+    if (empty($address)) $errors[] = "Address is required";
+    if (empty($username)) $errors[] = "Username is required";
     if (empty($password)) $errors[] = "Password is required";
     if ($password !== $confirm_password) $errors[] = "Passwords do not match";
     
@@ -38,15 +47,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
     
-    // Check if student ID already exists
+    // Check if IC number already exists
     if (empty($errors)) {
-        $stmt = $conn->prepare("SELECT id FROM students WHERE student_id = ?");
-        $stmt->bind_param("s", $student_id);
+        $stmt = $conn->prepare("SELECT id FROM students WHERE ic_number = ?");
+        $stmt->bind_param("s", $ic_number);
         $stmt->execute();
         $result = $stmt->get_result();
         
         if ($result->num_rows > 0) {
-            $errors[] = "Student ID already exists";
+            $errors[] = "IC Number already exists";
         }
     }
     
@@ -68,8 +77,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
         
         // Insert into database
-        $stmt = $conn->prepare("INSERT INTO students (name, username, student_id, email, phone, faculty, program, password, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')");
-        $stmt->bind_param("ssssssss", $name, $username, $student_id, $email, $phone, $faculty, $program, $hashed_password);
+        $stmt = $conn->prepare("INSERT INTO students (name, gender, dob, ic_number, course, contact_no, email, citizenship, address, username, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssssssssss", $name, $gender, $dob, $ic_number, $course, $contact_no, $email, $citizenship, $address, $username, $hashed_password);
         
         if ($stmt->execute()) {
             $success = true;
@@ -113,8 +122,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <?php if ($success): ?>
                             <div class="alert alert-success">
                                 <h4><i class="fas fa-check-circle mr-2"></i>Registration Successful!</h4>
-                                <p>Your account has been created and is pending approval by the administration.</p>
-                                <p>You will be able to login once your account is approved.</p>
+                                <p>Your account has been created successfully.</p>
                                 <div class="text-center mt-3">
                                     <a href="login.php" class="btn btn-outline-success">Go to Login</a>
                                     <a href="../index.php" class="btn btn-outline-secondary ml-2">Back to Home</a>
@@ -133,26 +141,64 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                         </div>
                                     </div>
                                     <div class="form-group col-md-6">
-                                        <label for="username">Username</label>
+                                        <label for="gender">Gender</label>
                                         <div class="input-group">
                                             <div class="input-group-prepend">
-                                                <span class="input-group-text"><i class="fas fa-user-graduate"></i></span>
+                                                <span class="input-group-text"><i class="fas fa-venus-mars"></i></span>
                                             </div>
-                                            <input type="text" name="username" id="username" class="form-control" required>
+                                            <select name="gender" id="gender" class="form-control" required>
+                                                <option value="" selected disabled>Select Gender</option>
+                                                <option value="Male">Male</option>
+                                                <option value="Female">Female</option>
+                                                <option value="Other">Other</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
-                                        <label for="student_id">Student ID</label>
+                                        <label for="dob">Date of Birth</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                                            </div>
+                                            <input type="date" name="dob" id="dob" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="ic_number">IC Number / Passport</label>
                                         <div class="input-group">
                                             <div class="input-group-prepend">
                                                 <span class="input-group-text"><i class="fas fa-id-card"></i></span>
                                             </div>
-                                            <input type="text" name="student_id" id="student_id" class="form-control" required>
+                                            <input type="text" name="ic_number" id="ic_number" class="form-control" required>
                                         </div>
                                     </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="course">Course</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fas fa-graduation-cap"></i></span>
+                                            </div>
+                                            <input type="text" name="course" id="course" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="contact_no">Contact Number</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                            </div>
+                                            <input type="text" name="contact_no" id="contact_no" class="form-control" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
                                     <div class="form-group col-md-6">
                                         <label for="email">Email</label>
                                         <div class="input-group">
@@ -162,39 +208,40 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                             <input type="email" name="email" id="email" class="form-control" required>
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <div class="form-row">
                                     <div class="form-group col-md-6">
-                                        <label for="phone">Phone Number</label>
+                                        <label for="citizenship">Citizenship</label>
                                         <div class="input-group">
                                             <div class="input-group-prepend">
-                                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                                <span class="input-group-text"><i class="fas fa-flag"></i></span>
                                             </div>
-                                            <input type="text" name="phone" id="phone" class="form-control">
+                                            <select name="citizenship" id="citizenship" class="form-control" required>
+                                                <option value="" selected disabled>Select Citizenship</option>
+                                                <option value="Malaysian">Malaysian</option>
+                                                <option value="Others">Others</option>
+                                            </select>
                                         </div>
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="faculty">Faculty</label>
-                                        <select name="faculty" id="faculty" class="form-control">
-                                            <option value="" selected disabled>Select Faculty</option>
-                                            <option value="Faculty of Computing and Informatics">Faculty of Computing and Informatics</option>
-                                            <option value="Faculty of Engineering">Faculty of Engineering</option>
-                                            <option value="Faculty of Management">Faculty of Management</option>
-                                            <option value="Faculty of Creative Multimedia">Faculty of Creative Multimedia</option>
-                                            <option value="Faculty of Applied Communication">Faculty of Applied Communication</option>
-                                            <option value="Faculty of Information Science & Technology">Faculty of Information Science & Technology</option>
-                                        </select>
                                     </div>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="program">Program (Course)</label>
+                                    <label for="address">Address</label>
                                     <div class="input-group">
                                         <div class="input-group-prepend">
-                                            <span class="input-group-text"><i class="fas fa-graduation-cap"></i></span>
+                                            <span class="input-group-text"><i class="fas fa-home"></i></span>
                                         </div>
-                                        <input type="text" name="program" id="program" class="form-control">
+                                        <textarea name="address" id="address" class="form-control" rows="3" required></textarea>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="username">Username</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fas fa-user-circle"></i></span>
+                                            </div>
+                                            <input type="text" name="username" id="username" class="form-control" required>
+                                        </div>
                                     </div>
                                 </div>
                                 
