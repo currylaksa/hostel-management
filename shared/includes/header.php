@@ -25,9 +25,15 @@ if (!isset($pageTitle)) {
             <link rel="stylesheet" href="<?php echo $css; ?>">
         <?php endforeach; ?>
     <?php endif; ?>
-    
-    <!-- Font Awesome -->
+      <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Additional JavaScript, should be defined in the including file -->
+    <?php if (isset($additionalJS) && is_array($additionalJS)): ?>
+        <?php foreach ($additionalJS as $js): ?>
+            <script src="<?php echo $js; ?>"></script>
+        <?php endforeach; ?>
+    <?php endif; ?>
 </head>
 <body>
     <div class="dashboard-container">

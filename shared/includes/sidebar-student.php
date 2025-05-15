@@ -12,9 +12,14 @@
         </a>
         <a href="hostel_registration.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'hostel_registration.php' ? 'active' : ''; ?>">
             <i class="fas fa-hotel"></i> Hostel Registration
-        </a>
-        <a href="billing.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'billing.php' ? 'active' : ''; ?>">
+        </a>        <a href="billing.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'billing.php' ? 'active' : ''; ?>">
             <i class="fas fa-file-invoice"></i> Billing
+        </a>
+        <a href="complaints.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'complaints.php' ? 'active' : ''; ?>">
+            <i class="fas fa-comment-alt"></i> Complaints & Feedback
+        </a>
+        <a href="requests.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'requests.php' ? 'active' : ''; ?>">
+            <i class="fas fa-tools"></i> Service Requests
         </a>
         <a href="announcements.php" class="menu-item <?php echo basename($_SERVER['PHP_SELF']) == 'announcements.php' ? 'active' : ''; ?>">
             <i class="fas fa-bullhorn"></i> Announcements
