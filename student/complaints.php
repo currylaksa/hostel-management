@@ -366,16 +366,41 @@ function viewComplaint(complaintId) {
     
     // Fetch complaint details using AJAX
     fetch('get_complaint.php?id=' + complaintId)
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                document.getElementById('complaintContent').innerHTML = '<div class="alert alert-danger">' + data.error + '</div>';
-            } else {
-                displayComplaintDetails(data);
+        .then(response => {
+            if (!response.ok) {
+                // If response is not OK, get text and throw an error to be caught by .catch()
+                return response.text().then(text => {
+                    // Construct a more informative error message
+                    let errorMsg = `Server error: ${response.status} ${response.statusText}.`;
+                    // Sanitize text before putting it in <pre> to prevent XSS if it's HTML
+                    const sanitizedText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    if (text) {
+                        errorMsg += ` Server response: <pre>${sanitizedText}</pre>`;
+                    }
+                    throw new Error(errorMsg);
+                });
+            }
+            return response.text(); // Get raw text first
+        })
+        .then(text => {
+            try {
+                const data = JSON.parse(text); // Try to parse as JSON
+                if (data.error) {
+                    document.getElementById('complaintContent').innerHTML = '<div class="alert alert-danger">' + data.error + '</div>';
+                } else {
+                    displayComplaintDetails(data);
+                }
+            } catch (e) {
+                // Handle JSON parsing error, display raw text (sanitized)
+                const sanitizedText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                document.getElementById('complaintContent').innerHTML = '<div class="alert alert-danger">Error parsing server response. Raw response: <pre>' + sanitizedText + '</pre></div>';
             }
         })
         .catch(error => {
-            document.getElementById('complaintContent').innerHTML = '<div class="alert alert-danger">Error loading complaint details: ' + error.message + '</div>';
+            // This will catch network errors and errors thrown from the .then() blocks
+            // The error.message might already contain HTML (<pre> tag), so it's used directly.
+            // If it's not pre-formatted, ensure it's properly displayed.
+            document.getElementById('complaintContent').innerHTML = '<div class="alert alert-danger">Failed to load complaint details. ' + error.message + '</div>';
         });
 }
 
@@ -434,12 +459,14 @@ function displayComplaintDetails(complaint) {
     // Attachment link
     let attachmentHTML = '';
     if (complaint.attachment_path) {
+        // Extract filename from path
+        const fileName = complaint.attachment_path.split('/').pop();
         attachmentHTML = `
             <div class="attachment-section">
                 <h5><i class="fas fa-paperclip"></i> Attachment</h5>
                 <div class="attachment-preview">
                     <a href="../${complaint.attachment_path}" target="_blank" class="btn btn-sm btn-outline-primary">
-                        <i class="fas fa-download"></i> View Attachment
+                        <i class="fas fa-download"></i> View Attachment (${fileName})
                     </a>
                 </div>
             </div>

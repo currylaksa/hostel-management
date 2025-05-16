@@ -201,7 +201,7 @@ function getStudentComplaints($conn, $studentId) {
 function getComplaintDetails($conn, $complaintId, $studentId) {
     // Get complaint details
     $stmt = $conn->prepare("SELECT c.*, s.name as student_name, 
-                           (SELECT name FROM admin WHERE id = c.resolved_by) as resolved_by_name
+                           (SELECT name FROM admins WHERE id = c.resolved_by) as resolved_by_name
                            FROM complaints c
                            JOIN students s ON c.student_id = s.id
                            WHERE c.id = ? AND c.student_id = ?");
@@ -217,7 +217,7 @@ function getComplaintDetails($conn, $complaintId, $studentId) {
     
     // Get complaint status history
     $stmt = $conn->prepare("SELECT csh.*, 
-                          (SELECT name FROM admin WHERE id = csh.changed_by) as changed_by_name
+                          (SELECT name FROM admins WHERE id = csh.changed_by) as changed_by_name
                           FROM complaint_status_history csh
                           WHERE csh.complaint_id = ?
                           ORDER BY csh.created_at ASC");
@@ -429,9 +429,10 @@ function getStudentRequests($conn, $studentId) {
     
     $stmt = $conn->prepare("SELECT sr.*, 
                            (SELECT COUNT(*) FROM request_status_history WHERE request_id = sr.id) as updates_count,
-                           r.room_number, r.block
+                           r.room_number, hb.block_name as block
                            FROM service_requests sr
                            LEFT JOIN rooms r ON sr.room_id = r.id
+                           LEFT JOIN hostel_blocks hb ON r.block_id = hb.id
                            WHERE sr.student_id = ? 
                            ORDER BY sr.created_at DESC");
     $stmt->bind_param("i", $studentId);
@@ -456,14 +457,16 @@ function getStudentRequests($conn, $studentId) {
 function getRequestDetails($conn, $requestId, $studentId) {
     // Get request details
     $stmt = $conn->prepare("SELECT sr.*, 
-                          r.room_number, r.block,
-                          nr.room_number as new_room_number, nr.block as new_room_block,
+                          r.room_number, hb_current.block_name as block,
+                          nr.room_number as new_room_number, hb_new.block_name as new_room_block,
                           s.name as student_name,
-                          (SELECT name FROM admin WHERE id = sr.handled_by) as handled_by_name
+                          (SELECT name FROM admins WHERE id = sr.handled_by) as handled_by_name
                           FROM service_requests sr
                           JOIN students s ON sr.student_id = s.id
                           LEFT JOIN rooms r ON sr.room_id = r.id
+                          LEFT JOIN hostel_blocks hb_current ON r.block_id = hb_current.id
                           LEFT JOIN rooms nr ON sr.new_room_id = nr.id
+                          LEFT JOIN hostel_blocks hb_new ON nr.block_id = hb_new.id
                           WHERE sr.id = ? AND sr.student_id = ?");
     $stmt->bind_param("ii", $requestId, $studentId);
     $stmt->execute();
@@ -477,7 +480,7 @@ function getRequestDetails($conn, $requestId, $studentId) {
     
     // Get request status history
     $stmt = $conn->prepare("SELECT rsh.*, 
-                          (SELECT name FROM admin WHERE id = rsh.changed_by) as changed_by_name
+                          (SELECT name FROM admins WHERE id = rsh.changed_by) as changed_by_name
                           FROM request_status_history rsh
                           WHERE rsh.request_id = ?
                           ORDER BY rsh.created_at ASC");

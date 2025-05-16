@@ -22,10 +22,11 @@ $roomNumber = "";
 $blockName = "";
 
 // Get student ID from database
-$stmt = $conn->prepare("SELECT s.id, r.id as room_id, r.room_number, r.block 
-                       FROM students s 
-                       LEFT JOIN student_room_assignments sra ON s.id = sra.student_id AND sra.status = 'active'
+$stmt = $conn->prepare("SELECT s.id, r.id as room_id, r.room_number, hb.block_name
+                       FROM students s
+                       LEFT JOIN hostel_registrations sra ON s.id = sra.student_id AND sra.status = 'Checked In'
                        LEFT JOIN rooms r ON sra.room_id = r.id
+                       LEFT JOIN hostel_blocks hb ON r.block_id = hb.id
                        WHERE s.username = ?");
 $stmt->bind_param("s", $username);
 $stmt->execute();
@@ -36,7 +37,7 @@ if ($result->num_rows > 0) {
     $studentId = $row['id'];
     $roomId = $row['room_id'] ?? 0;
     $roomNumber = $row['room_number'] ?? 'Not assigned';
-    $blockName = $row['block'] ?? 'Not assigned';
+    $blockName = $row['block_name'] ?? 'Not assigned';
 } else {
     $errors[] = "Student information not found.";
 }
