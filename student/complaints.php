@@ -91,13 +91,7 @@ require_once '../shared/includes/sidebar-student.php';
 <div class="main-content">
     <div class="header">
         <h1><i class="fas fa-comment-alt"></i> Complaints & Feedback</h1>
-        <div class="user-info">
-            <img src="../uploads/profile_pictures/default_student.png" alt="Student Profile">
-            <span class="user-name"><?php echo $_SESSION["fullname"] ?? $_SESSION["user"]; ?></span>
-            <a href="../logout.php" class="logout-btn">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </div>
+        
     </div>
     
     <div class="complaints-container">

@@ -188,6 +188,23 @@ body.login-page {
     border-left: 4px solid white;
 }
 
+.sidebar-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 10px 20px;
+}
+
+.menu-item.logout {
+    margin-top: 10px;
+    color: #ffcc80;
+    font-weight: 600;
+}
+
+.menu-item.logout:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-left: 4px solid #ffcc80;
+}
+
 /* Main Content Layout */
 .main-content {
     flex-grow: 1;
