@@ -14,6 +14,7 @@ $additionalCSS = ["css/profile.css"];
 // Fetch student information from database
 $username = $_SESSION["user"];
 $student = null;
+$emergency_contact = null; // Variable to store emergency contact details
 $errors = [];
 $success = false;
 
@@ -25,6 +26,15 @@ $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
     $student = $result->fetch_assoc();
+
+    // Fetch emergency contact information
+    $stmt_emergency = $conn->prepare("SELECT * FROM emergency_contacts WHERE student_id = ?");
+    $stmt_emergency->bind_param("i", $student['id']);
+    $stmt_emergency->execute();
+    $result_emergency = $stmt_emergency->get_result();
+    if ($result_emergency->num_rows > 0) {
+        $emergency_contact = $result_emergency->fetch_assoc();
+    }
 } else {
     $errors[] = "Student information not found.";
 }
@@ -114,24 +124,25 @@ require_once '../shared/includes/sidebar-student.php';
 ?>
 
 <!-- Main Content -->
-<div class="main-content">    <div class="header">
-        <h1>My Profile</h1>
-
+<div class="main-content">
+    <div class="header">
+        <h1><i class="fas fa-user-circle"></i> My Profile</h1>
     </div>
     
     <!-- Profile Form -->
     <div class="profile-container">
         <?php if ($success): ?>
             <div class="alert alert-success">
+                <i class="fas fa-check-circle fa-lg mr-2"></i>
                 Profile updated successfully!
             </div>
         <?php endif; ?>
         
         <?php if (!empty($errors)): ?>
             <div class="alert alert-danger">
-                <ul>
+                <ul class="mb-0">
                     <?php foreach ($errors as $error): ?>
-                        <li><?php echo $error; ?></li>
+                        <li><?php echo htmlspecialchars($error); ?></li>
                     <?php endforeach; ?>
                 </ul>
             </div>
@@ -143,98 +154,185 @@ require_once '../shared/includes/sidebar-student.php';
             </div>
             <div class="card-body">
                 <form method="POST">
-                <!-- Profile image container removed as the functionality is not supported by the database -->
-                    
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label for="name">Full Name</label>
-                            <input type="text" class="form-control" id="name" name="name" value="<?php echo $student['name'] ?? ''; ?>" required>
+                
+                    <div class="profile-section">
+                        <div class="section-title">
+                            <i class="fas fa-id-card"></i>
+                            <h4>Personal Information</h4>
                         </div>
-                        <div class="form-group col-md-6">
-                            <label for="ic_number">IC/Passport Number</label>
-                            <input type="text" class="form-control" id="ic_number" value="<?php echo $student['ic_number'] ?? ''; ?>" readonly>
-                            <small class="form-text text-muted">IC/Passport number cannot be changed</small>
+                        
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="name" name="name" value="<?php echo htmlspecialchars($student['name'] ?? ''); ?>" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="ic_number" class="form-label">IC/Passport Number</label>
+                                <div class="readonly-field">
+                                    <input type="text" class="form-control" id="ic_number" value="<?php echo htmlspecialchars($student['ic_number'] ?? ''); ?>" readonly>
+                                </div>
+                                <small class="form-text text-muted">IC/Passport number cannot be changed</small>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label for="gender">Gender</label>
-                            <input type="text" class="form-control" id="gender" value="<?php echo $student['gender'] ?? ''; ?>" readonly>
-                            <small class="form-text text-muted">Gender cannot be changed</small>
+                        
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="gender" class="form-label">Gender</label>
+                                <div class="readonly-field">
+                                    <input type="text" class="form-control" id="gender" value="<?php echo htmlspecialchars($student['gender'] ?? ''); ?>" readonly>
+                                </div>
+                                <small class="form-text text-muted">Gender cannot be changed</small>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="dob" class="form-label">Date of Birth</label>
+                                <div class="readonly-field">
+                                    <input type="date" class="form-control" id="dob" value="<?php echo htmlspecialchars($student['dob'] ?? ''); ?>" readonly>
+                                </div>
+                                <small class="form-text text-muted">Date of birth cannot be changed</small>
+                            </div>
                         </div>
-                        <div class="form-group col-md-6">
-                            <label for="dob">Date of Birth</label>
-                            <input type="date" class="form-control" id="dob" value="<?php echo $student['dob'] ?? ''; ?>" readonly>
-                            <small class="form-text text-muted">Date of birth cannot be changed</small>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label for="course">Course</label>
-                            <input type="text" class="form-control" id="course" value="<?php echo $student['course'] ?? ''; ?>" readonly>
-                            <small class="form-text text-muted">Course cannot be changed</small>
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="citizenship">Citizenship</label>
-                            <input type="text" class="form-control" id="citizenship" value="<?php echo $student['citizenship'] ?? ''; ?>" readonly>
-                            <small class="form-text text-muted">Citizenship cannot be changed</small>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label for="contact_no">Contact Number</label>
-                            <input type="text" class="form-control" id="contact_no" name="contact_no" value="<?php echo $student['contact_no'] ?? ''; ?>" required>
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="email">Email</label>
-                            <input type="email" class="form-control" id="email" name="email" value="<?php echo $student['email'] ?? ''; ?>" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="address">Address</label>
-                        <textarea class="form-control" id="address" name="address" rows="3" required><?php echo $student['address'] ?? ''; ?></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" class="form-control" id="username" value="<?php echo $student['username'] ?? ''; ?>" readonly>
-                        <small class="form-text text-muted">Username cannot be changed</small>
-                    </div>
-                    
-                    <hr>
-                    <h4>Change Password</h4>
-                    <p class="text-muted">Leave blank if you don't want to change your password</p>
-                    
-                    <div class="form-group">
-                        <label for="current_password">Current Password</label>
-                        <input type="password" class="form-control" id="current_password" name="current_password">
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label for="new_password">New Password</label>
-                            <input type="password" class="form-control" id="new_password" name="new_password">
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="confirm_password">Confirm New Password</label>
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                        
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="course" class="form-label">Course</label>
+                                <div class="readonly-field">
+                                    <input type="text" class="form-control" id="course" value="<?php echo htmlspecialchars($student['course'] ?? ''); ?>" readonly>
+                                </div>
+                                <small class="form-text text-muted">Course cannot be changed</small>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="citizenship" class="form-label">Citizenship</label>
+                                <div class="readonly-field">
+                                    <input type="text" class="form-control" id="citizenship" value="<?php echo htmlspecialchars($student['citizenship'] ?? ''); ?>" readonly>
+                                </div>
+                                <small class="form-text text-muted">Citizenship cannot be changed</small>
+                            </div>
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save Changes
-                    </button>
+                    <div class="profile-section">
+                        <div class="section-title">
+                            <i class="fas fa-address-book"></i>
+                            <h4>Contact Information</h4>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="contact_no" class="form-label">Contact Number</label>
+                                <input type="text" class="form-control" id="contact_no" name="contact_no" value="<?php echo htmlspecialchars($student['contact_no'] ?? ''); ?>" required>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($student['email'] ?? ''); ?>" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="address" class="form-label">Home Address</label>
+                            <textarea class="form-control" id="address" name="address" rows="3" required><?php echo htmlspecialchars($student['address'] ?? ''); ?></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-section">
+                        <div class="section-title">
+                            <i class="fas fa-user-shield"></i>
+                            <h4>Account Information</h4>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="username" class="form-label">Username</label>
+                            <div class="readonly-field">
+                                <input type="text" class="form-control" id="username" value="<?php echo htmlspecialchars($student['username'] ?? ''); ?>" readonly>
+                            </div>
+                            <small class="form-text text-muted">Username cannot be changed</small>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-section">
+                        <div class="section-title">
+                            <i class="fas fa-ambulance"></i>
+                            <h4>Emergency Contact Information</h4>
+                        </div>
+                        
+                        <?php if ($emergency_contact): ?>
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="emergency_name" class="form-label">Full Name</label>
+                                    <div class="readonly-field">
+                                        <input type="text" class="form-control" id="emergency_name" value="<?php echo htmlspecialchars($emergency_contact['name'] ?? ''); ?>" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="emergency_ic_number" class="form-label">IC/Passport Number</label>
+                                    <div class="readonly-field">
+                                        <input type="text" class="form-control" id="emergency_ic_number" value="<?php echo htmlspecialchars($emergency_contact['ic_number'] ?? ''); ?>" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="emergency_relationship" class="form-label">Relationship</label>
+                                    <div class="readonly-field">
+                                        <input type="text" class="form-control" id="emergency_relationship" value="<?php echo htmlspecialchars($emergency_contact['relationship'] ?? ''); ?>" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="emergency_contact_no" class="form-label">Contact Number</label>
+                                    <div class="readonly-field">
+                                        <input type="text" class="form-control" id="emergency_contact_no" value="<?php echo htmlspecialchars($emergency_contact['contact_no'] ?? ''); ?>" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="emergency_email" class="form-label">Email Address</label>
+                                <div class="readonly-field">
+                                    <input type="email" class="form-control" id="emergency_email" value="<?php echo htmlspecialchars($emergency_contact['email'] ?? ''); ?>" readonly>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                No emergency contact information available.
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <div class="profile-section">
+                        <div class="section-title">
+                            <i class="fas fa-lock"></i>
+                            <h4>Change Password</h4>
+                        </div>
+                        <p class="text-muted mb-4">Leave blank if you don't want to change your password</p>
+                        
+                        <div class="form-group">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password">
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="new_password" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="new_password" name="new_password">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save mr-2"></i> Save Changes
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Image preview script removed as profile image functionality is not supported -->
 
 <?php
 // Include footer

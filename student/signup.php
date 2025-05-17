@@ -19,6 +19,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
+
+    // Get emergency contact form data
+    $emergency_name = $_POST['emergency_name'] ?? '';
+    $emergency_ic_number = $_POST['emergency_ic_number'] ?? '';
+    $emergency_relationship = $_POST['emergency_relationship'] ?? '';
+    $emergency_contact_no = $_POST['emergency_contact_no'] ?? '';
+    $emergency_email = $_POST['emergency_email'] ?? '';
     
     // Validate form data
     if (empty($name)) $errors[] = "Name is required";
@@ -34,6 +41,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (empty($username)) $errors[] = "Username is required";
     if (empty($password)) $errors[] = "Password is required";
     if ($password !== $confirm_password) $errors[] = "Passwords do not match";
+
+    // Validate emergency contact form data
+    if (empty($emergency_name)) $errors[] = "Emergency Contact Name is required";
+    if (empty($emergency_ic_number)) $errors[] = "Emergency Contact IC Number is required";
+    if (empty($emergency_relationship)) $errors[] = "Emergency Contact Relationship is required";
+    if (empty($emergency_contact_no)) $errors[] = "Emergency Contact Number is required";
+    if (empty($emergency_email)) $errors[] = "Emergency Contact Email is required";
+    if (!filter_var($emergency_email, FILTER_VALIDATE_EMAIL)) $errors[] = "Invalid Emergency Contact email format";
     
     // Check if username already exists
     if (empty($errors)) {
@@ -81,9 +96,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->bind_param("sssssssssss", $name, $gender, $dob, $ic_number, $course, $contact_no, $email, $citizenship, $address, $username, $hashed_password);
         
         if ($stmt->execute()) {
-            $success = true;
+            $student_id = $stmt->insert_id; // Get the ID of the newly inserted student
+
+            // Insert into emergency_contacts table
+            $stmt_emergency = $conn->prepare("INSERT INTO emergency_contacts (student_id, name, ic_number, relationship, contact_no, email) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt_emergency->bind_param("isssss", $student_id, $emergency_name, $emergency_ic_number, $emergency_relationship, $emergency_contact_no, $emergency_email);
+
+            if ($stmt_emergency->execute()) {
+                $success = true;
+            } else {
+                $errors[] = "Database error (emergency_contacts): " . $conn->error;
+            }
         } else {
-            $errors[] = "Database error: " . $conn->error;
+            $errors[] = "Database error (students): " . $conn->error;
         }
     }
 }
@@ -95,25 +120,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Sign Up - MMU Hostel Management System</title>
-    <link rel="stylesheet" href="../shared/css/style.css">
-    <link rel="stylesheet" href="css/signup.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="../shared/css/style.css">
+    <link rel="stylesheet" href="css/signup.css">
 </head>
 <body>
-    <div class="container mt-5 mb-5">
-        <div class="row">
-            <div class="col-lg-8 offset-lg-2">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9 col-md-11">
                 <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h3 class="text-center">Student Sign Up</h3>
+                    <div class="card-header">
+                        <h3>Create Your Student Account</h3>
                     </div>
                     <div class="card-body">
                         <?php if (!empty($errors)): ?>
                             <div class="alert alert-danger">
                                 <ul class="mb-0">
                                     <?php foreach ($errors as $error): ?>
-                                        <li><?php echo $error; ?></li>
+                                        <li><?php echo htmlspecialchars($error); ?></li>
                                     <?php endforeach; ?>
                                 </ul>
                             </div>
@@ -123,13 +149,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <div class="alert alert-success">
                                 <h4><i class="fas fa-check-circle mr-2"></i>Registration Successful!</h4>
                                 <p>Your account has been created successfully.</p>
-                                <div class="text-center mt-3">
-                                    <a href="login.php" class="btn btn-outline-success">Go to Login</a>
+                                <div class="text-center mt-4">
+                                    <a href="login.php" class="btn btn-primary">Go to Login</a>
                                     <a href="../index.php" class="btn btn-outline-secondary ml-2">Back to Home</a>
                                 </div>
                             </div>
                         <?php else: ?>
-                            <form action="signup.php" method="POST">
+                            <form action="signup.php" method="POST" novalidate>
+                                <h5 class="form-section-title">Personal Information</h5>
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
                                         <label for="name">Full Name</label>
@@ -233,6 +260,62 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     </div>
                                 </div>
                                 
+                                <h5 class="form-section-title">Emergency Contact Information</h5>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="emergency_name">Full Name</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                            </div>
+                                            <input type="text" name="emergency_name" id="emergency_name" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="emergency_ic_number">IC Number / Passport</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                            </div>
+                                            <input type="text" name="emergency_ic_number" id="emergency_ic_number" class="form-control" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="emergency_relationship">Relationship</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fas fa-users"></i></span>
+                                            </div>
+                                            <input type="text" name="emergency_relationship" id="emergency_relationship" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="emergency_contact_no">Contact Number</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                            </div>
+                                            <input type="text" name="emergency_contact_no" id="emergency_contact_no" class="form-control" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group col-md-12">
+                                        <label for="emergency_email">Email</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                            </div>
+                                            <input type="email" name="emergency_email" id="emergency_email" class="form-control" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h5 class="form-section-title">Account Credentials</h5>
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
                                         <label for="username">Username</label>
@@ -254,7 +337,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                             </div>
                                             <input type="password" name="password" id="password" class="form-control" required>
                                         </div>
-                                        <div class="password-strength"></div>
+                                        <div class="password-strength mt-2">
+                                            <div class="password-strength-bar"></div>
+                                        </div>
                                     </div>
                                     <div class="form-group col-md-6">
                                         <label for="confirm_password">Confirm Password</label>
@@ -299,10 +384,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // Password strength indicator
         document.getElementById('password').addEventListener('input', function() {
             const password = this.value;
-            const strengthBar = document.querySelector('.password-strength');
+            const strengthBarContainer = document.querySelector('.password-strength');
+            const strengthBar = document.querySelector('.password-strength-bar');
             
             // Remove all classes
-            strengthBar.classList.remove('weak', 'medium', 'strong', 'very-strong');
+            strengthBar.className = 'password-strength-bar'; // Reset to base class
             
             if (password.length > 0) {
                 let strength = 0;
@@ -314,13 +400,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength += 1;
                 
                 // Check for numbers
-                if (password.match(/\d/)) strength += 1;
+                if (password.match(/\\d/)) strength += 1;
                 
                 // Check for special characters
-                if (password.match(/[^a-zA-Z\d]/)) strength += 1;
+                if (password.match(/[^a-zA-Z\\d]/)) strength += 1;
                 
                 // Update strength bar
                 switch (strength) {
+                    case 0:
+                        // Optionally handle case 0 if you want a default state or hide the bar
+                        break;
                     case 1:
                         strengthBar.classList.add('weak');
                         break;
