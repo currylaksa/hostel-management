@@ -781,7 +781,7 @@ ALTER TABLE `rooms`
 --
 ALTER TABLE `service_requests`
   ADD CONSTRAINT `service_requests_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `service_requests_ibfk_2` FOREIGN KEY (`handled_by`) REFERENCES `admin` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `service_requests_ibfk_2` FOREIGN KEY (`handled_by`) REFERENCES `admins` (`id`) ON DELETE SET NULL;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
