@@ -289,10 +289,9 @@ if (isset($_SESSION["profile_message"])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MMU Hostel Management - Admin Profile</title>
-    <link rel="stylesheet" href="../shared/css/style.css">
+    <title>MMU Hostel Management - Admin Profile</title>    <link rel="stylesheet" href="../shared/css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
-    <link rel="stylesheet" href="profile.css">
+    <link rel="stylesheet" href="css/profile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
