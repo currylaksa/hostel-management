@@ -24,8 +24,12 @@ if (isset($_SESSION['form_submitted']) && $_SESSION['form_submitted'] === true) 
     // Clear the flag
     unset($_SESSION['form_submitted']);
     
+    // Add a success message
+    $_SESSION["profile_message"] = "Profile updated successfully!";
+    $_SESSION["profile_message_type"] = "success";
+    
     // Redirect to reset the page and prevent form resubmission
-    header("Location: admin_profile.php?reset=true");
+    header("Location: profile.php?reset=true");
     exit();
 }
 
@@ -65,13 +69,43 @@ if ($result->num_rows > 0) {
 $stmt->close();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Add a log to ensure we're getting POST data
+    error_log("POST data received: " . json_encode($_POST));
+    
     // Update profile information
     if (isset($_POST["update_profile"])) {
-        $name = $_POST["name"];
-        $email = $_POST["email"];
-        $phone = $_POST["contact_no"];
-        $office_number = $_POST["office_number"];
+        // Sanitize input data
+        $name = trim($_POST["name"]);
+        $email = trim($_POST["email"]);
+        $phone = trim($_POST["contact_no"]);
+        $office_number = trim($_POST["office_number"]);
         $username = $_SESSION["user"];
+        
+        // Basic validation
+        $is_valid = true;
+        
+        if(empty($name)) {
+            $_SESSION["profile_message"] = "Name cannot be empty";
+            $_SESSION["profile_message_type"] = "error";
+            $is_valid = false;
+        }
+        
+        if(empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $_SESSION["profile_message"] = "Please provide a valid email address";
+            $_SESSION["profile_message_type"] = "error";
+            $is_valid = false;
+        }
+        
+        if(empty($phone)) {
+            $_SESSION["profile_message"] = "Phone number cannot be empty";
+            $_SESSION["profile_message_type"] = "error";
+            $is_valid = false;
+        }
+        
+        if(!$is_valid) {
+            header("Location: profile.php");
+            exit();
+        }
         
         // First check if the email already exists for another user
         $email_check_sql = "SELECT * FROM admins WHERE email = ? AND username != ?";
@@ -90,25 +124,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $check_stmt->bind_param("s", $username);
             $check_stmt->execute();
             $check_result = $check_stmt->get_result();
-            
-            if ($check_result->num_rows > 0) {
+              if ($check_result->num_rows > 0) {
                 // Update existing record
                 $update_sql = "UPDATE admins SET name = ?, email = ?, contact_no = ?, office_number = ? WHERE username = ?";
                 $update_stmt = $conn->prepare($update_sql);
                 $update_stmt->bind_param("sssss", $name, $email, $phone, $office_number, $username);
                 
                 if ($update_stmt->execute()) {
-                    $_SESSION["profile_message"] = "Profile updated successfully!";
-                    $_SESSION["profile_message_type"] = "success";
-                    
                     // Update session with the new name
                     $_SESSION["fullname"] = $name;
+                    $_SESSION["profile_image"] = $admin["profile_pic"]; // Ensure profile image is consistent
                     
                     // Set flag to indicate successful submission
                     $_SESSION["form_submitted"] = true;
+                    
+                    // Add detailed message for debugging
+                    $_SESSION["profile_message"] = "Profile updated successfully! Name: $name, Email: $email, Phone: $phone";
+                    $_SESSION["profile_message_type"] = "success";
+                    
+                    // Log successful update
+                    error_log("Admin profile updated successfully for user: $username");
                 } else {
                     $_SESSION["profile_message"] = "Error updating profile: " . $conn->error;
                     $_SESSION["profile_message_type"] = "error";
+                    error_log("Error updating admin profile for user $username: " . $conn->error);
                 }
                 
                 // Clear statement
@@ -121,14 +160,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $insert_stmt->bind_param("sssss", $name, $email, $phone, $office_number, $username);
                 
                 if ($insert_stmt->execute()) {
-                    $_SESSION["profile_message"] = "Profile created successfully!";
-                    $_SESSION["profile_message_type"] = "success";
-                    
                     // Update session with the new name
                     $_SESSION["fullname"] = $name;
                     
                     // Set flag to indicate successful submission
                     $_SESSION["form_submitted"] = true;
+                    
+                    $_SESSION["profile_message"] = "Profile created successfully! Name: $name, Email: $email";
+                    $_SESSION["profile_message_type"] = "success";
                 } else {
                     $_SESSION["profile_message"] = "Error creating profile: " . $conn->error;
                     $_SESSION["profile_message_type"] = "error";
@@ -139,9 +178,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             
             $check_stmt->close();
-            
-            // Redirect after form submission to prevent resubmission and apply the reset
-            header("Location: admin_profile.php?reset=true");
+              // Redirect after form submission to prevent resubmission and apply the reset
+            header("Location: profile.php?reset=true");
             exit();
         }
         
@@ -169,22 +207,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION["profile_message_type"] = "error";
             } else {
                 // Verify MIME type
-                if (in_array($filetype, $allowed)) {
-                    // Generate unique filename
+                if (in_array($filetype, $allowed)) {                    // Generate unique filename
                     $new_filename = "admin_" . $username . "_" . time() . "." . $ext;
                     $upload_dir = "uploads/profile_pictures/";
                     
-                    // Create directory if it doesn't exist
-                    if (!file_exists($upload_dir)) {
-                        mkdir($upload_dir, 0777, true);
+                    // Create directory if it doesn't exist - make the path absolute
+                    $absolute_upload_dir = __DIR__ . "/" . $upload_dir;
+                    if (!file_exists($absolute_upload_dir)) {
+                        mkdir($absolute_upload_dir, 0777, true);
                     }
-                    
-                    // Move the file
-                    if (move_uploaded_file($_FILES["profile_picture"]["tmp_name"], $upload_dir . $new_filename)) {
+                      // Move the file
+                    if (move_uploaded_file($_FILES["profile_picture"]["tmp_name"], $absolute_upload_dir . $new_filename)) {
                         // Update database with new profile picture path
                         $profile_pic_sql = "UPDATE admins SET profile_pic = ? WHERE username = ?";
                         $profile_pic_stmt = $conn->prepare($profile_pic_sql);
-                        $profile_pic_path = $upload_dir . $new_filename;
+                        $profile_pic_path = $upload_dir . $new_filename; // Store the relative path in database
                         $profile_pic_stmt->bind_param("ss", $profile_pic_path, $username);
                         
                         if ($profile_pic_stmt->execute()) {
@@ -206,21 +243,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
             }
         }
-        
-        // Redirect after profile picture upload to avoid resubmission
-        header("Location: admin_profile.php?reset=true");
+          // Redirect after profile picture upload to avoid resubmission
+        header("Location: profile.php?reset=true");
         exit();
     }
-    
-    // Handle password change
+      // Handle password change
     if (isset($_POST["change_password"])) {
         $current_password = $_POST["current_password"];
         $new_password = $_POST["new_password"];
         $confirm_password = $_POST["confirm_password"];
         $username = $_SESSION["user"];
         
+        // Basic validation
+        if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
+            $_SESSION["profile_message"] = "All password fields are required!";
+            $_SESSION["profile_message_type"] = "error";
+            header("Location: profile.php?reset=true");
+            exit();
+        }
+        
+        if ($new_password !== $confirm_password) {
+            $_SESSION["profile_message"] = "New password and confirmation do not match!";
+            $_SESSION["profile_message_type"] = "error";
+            header("Location: profile.php?reset=true");
+            exit();
+        }
+        
         // Verify the current password
-        $password_sql = "SELECT password FROM users WHERE username = ?";
+        $password_sql = "SELECT password FROM admins WHERE username = ?";
         $password_stmt = $conn->prepare($password_sql);
         $password_stmt->bind_param("s", $username);
         $password_stmt->execute();
@@ -232,29 +282,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             
             // Verify current password
             if (password_verify($current_password, $stored_password)) {
-                // Check if new password matches confirmation
-                if ($new_password === $confirm_password) {
-                    // Hash the new password
-                    $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-                    
-                    // Update the password
-                    $update_password_sql = "UPDATE users SET password = ? WHERE username = ?";
-                    $update_password_stmt = $conn->prepare($update_password_sql);
-                    $update_password_stmt->bind_param("ss", $hashed_password, $username);
-                    
-                    if ($update_password_stmt->execute()) {
-                        $_SESSION["profile_message"] = "Password changed successfully!";
-                        $_SESSION["profile_message_type"] = "success";
-                    } else {
-                        $_SESSION["profile_message"] = "Error updating password: " . $conn->error;
-                        $_SESSION["profile_message_type"] = "error";
-                    }
-                    
-                    $update_password_stmt->close();
+                // Hash the new password
+                $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+                
+                // Update the password
+                $update_password_sql = "UPDATE admins SET password = ? WHERE username = ?";
+                $update_password_stmt = $conn->prepare($update_password_sql);
+                $update_password_stmt->bind_param("ss", $hashed_password, $username);
+                
+                if ($update_password_stmt->execute()) {
+                    $_SESSION["profile_message"] = "Password changed successfully!";
+                    $_SESSION["profile_message_type"] = "success";
+                    error_log("Password changed successfully for admin: $username");
                 } else {
-                    $_SESSION["profile_message"] = "New password and confirmation do not match!";
+                    $_SESSION["profile_message"] = "Error updating password: " . $conn->error;
                     $_SESSION["profile_message_type"] = "error";
+                    error_log("Error updating password for admin $username: " . $conn->error);
                 }
+                
+                $update_password_stmt->close();
             } else {
                 $_SESSION["profile_message"] = "Current password is incorrect!";
                 $_SESSION["profile_message_type"] = "error";
@@ -265,9 +311,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
         
         $password_stmt->close();
-        
-        // Redirect after password change to avoid resubmission
-        header("Location: admin_profile.php?reset=true");
+          // Redirect after password change to avoid resubmission
+        header("Location: profile.php?reset=true");
         exit();
     }
 }
@@ -343,9 +388,8 @@ if (isset($_SESSION["profile_message"])) {
                 <a href="#" class="menu-item">
                     <i class="fas fa-envelope"></i> Messages
                 </a>
-                
-                <div class="menu-category">Admin</div>
-                <a href="admin_profile.php?reset=true" class="menu-item active">
+                  <div class="menu-category">Admin</div>
+                <a href="profile.php?reset=true" class="menu-item active">
                     <i class="fas fa-user-circle"></i> My Profile
                 </a>
                 <a href="#" class="menu-item">
@@ -362,11 +406,24 @@ if (isset($_SESSION["profile_message"])) {
             <div class="header">
                 <h1>Admin Profile</h1>
                 <div class="user-info">
-                    <?php
-                    // Get the profile image path from the database or use a default
-                    $profile_image = (isset($admin['profile_pic']) && !empty($admin['profile_pic'])) 
-                        ? $admin['profile_pic'] 
-                        : "uploads/profile_pictures/default_admin.png";
+                    <?php                    // Get the profile image path from the database or use a default
+                    if (isset($admin['profile_pic']) && !empty($admin['profile_pic'])) {
+                        $profile_image = $admin['profile_pic'];
+                        // Make sure the path is correct
+                        if (!file_exists($profile_image) && file_exists("../" . $profile_image)) {
+                            $profile_image = "../" . $profile_image;
+                        }
+                    } else {
+                        // Use a default profile image that definitely exists
+                        if (file_exists("uploads/profile_pictures/default_admin.png")) {
+                            $profile_image = "uploads/profile_pictures/default_admin.png";
+                        } else if (file_exists("../uploads/profile_pictures/default_admin.png")) {
+                            $profile_image = "../uploads/profile_pictures/default_admin.png";
+                        } else {
+                            // If no default image exists, use a placeholder
+                            $profile_image = "https://via.placeholder.com/150";
+                        }
+                    }
                     
                     // Update the session variable to ensure consistency across pages
                     $_SESSION["profile_image"] = $profile_image;
@@ -422,18 +479,17 @@ if (isset($_SESSION["profile_message"])) {
                     <div class="form-section-header">
                         <h3>Update your profile information below</h3>
                         <p>Fill in only the fields you want to update and click "Save Changes" when you're done.</p>
-                    </div>
-                    <form action="" method="post">
+                    </div>                    <form action="" method="post">
                         <div class="form-section">
                             <h3><i class="fas fa-user"></i> Personal Information</h3>
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="name">Full Name</label>
-                                    <input type="text" class="form-control" id="name" name="name" value="<?php echo $name; ?>" placeholder="Enter your full name">
+                                    <input type="text" class="form-control" id="name" name="name" value="<?php echo $name; ?>" placeholder="Enter your full name" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="email">Email Address</label>
-                                    <input type="email" class="form-control" id="email" name="email" value="<?php echo $email; ?>" placeholder="Enter your email address">
+                                    <input type="email" class="form-control" id="email" name="email" value="<?php echo $email; ?>" placeholder="Enter your email address" required>
                                 </div>
                             </div>
                         </div>
@@ -443,7 +499,7 @@ if (isset($_SESSION["profile_message"])) {
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="phone">Phone Number</label>
-                                    <input type="text" class="form-control" id="phone" name="contact_no" value="<?php echo $phone; ?>" placeholder="Enter your phone number">
+                                    <input type="text" class="form-control" id="phone" name="contact_no" value="<?php echo $phone; ?>" placeholder="Enter your phone number" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="office_number">Office Number</label>
@@ -452,43 +508,55 @@ if (isset($_SESSION["profile_message"])) {
                             </div>
                         </div>
 
+                        <div class="form-section">
+                            <h3><i class="fas fa-user-shield"></i> Account Information</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="admin_username">Username</label>
+                                    <input type="text" class="form-control" id="admin_username" name="username" value="<?php echo $_SESSION["user"]; ?>" placeholder="Enter your username" readonly>
+                                    <small class="form-text text-muted">Username cannot be changed</small>
+                                </div>
+                            </div>
+                        </div>
+
                         <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
-                            <button type="submit" class="btn btn-primary" name="update_profile">
+                            <input type="hidden" name="update_profile" value="1">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Save Profile Changes
                             </button>
                         </div>
                     </form>
-                </div>
-
-                <div class="tab-content" id="security">
+                </div>                <div class="tab-content" id="security">
                     <div class="form-section">
                         <h3><i class="fas fa-key"></i> Change Password</h3>
                         <form action="" method="post">
                             <div class="form-group">
                                 <label for="current_password">Current Password</label>
-                                <input type="password" class="form-control" id="current_password" name="current_password">
+                                <input type="password" class="form-control" id="current_password" name="current_password" required>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="new_password">New Password</label>
-                                    <input type="password" class="form-control" id="new_password" name="new_password">
+                                    <input type="password" class="form-control" id="new_password" name="new_password" required>
+                                    <small class="form-text text-muted">Password should be at least 8 characters</small>
                                 </div>
                                 <div class="form-group">
                                     <label for="confirm_password">Confirm New Password</label>
-                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
                                 </div>
                             </div>
                             <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
-                                <button type="submit" class="btn btn-primary" name="change_password">Update Password</button>
+                                <input type="hidden" name="change_password" value="1">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-key"></i> Update Password
+                                </button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <script>
+    </div>    <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Tab functionality
             const tabs = document.querySelectorAll('.profile-tab');
@@ -523,6 +591,99 @@ if (isset($_SESSION["profile_message"])) {
                     document.getElementById(tabContentId).classList.add('active');
                 });
             });
+            
+            // Add form validation for profile update
+            const profileForm = document.querySelector('#edit-profile form');
+            if (profileForm) {
+                profileForm.addEventListener('submit', function(e) {
+                    const nameField = document.getElementById('name');
+                    const emailField = document.getElementById('email');
+                    const phoneField = document.getElementById('phone');
+                    
+                    let isValid = true;
+                    
+                    // Validate name
+                    if (!nameField.value.trim()) {
+                        alert('Please enter your full name');
+                        nameField.focus();
+                        isValid = false;
+                        e.preventDefault();
+                        return;
+                    }
+                    
+                    // Validate email
+                    if (!emailField.value.trim() || !emailField.value.includes('@')) {
+                        alert('Please enter a valid email address');
+                        emailField.focus();
+                        isValid = false;
+                        e.preventDefault();
+                        return;
+                    }
+                    
+                    // Validate phone
+                    if (!phoneField.value.trim()) {
+                        alert('Please enter your phone number');
+                        phoneField.focus();
+                        isValid = false;
+                        e.preventDefault();
+                        return;
+                    }
+                    
+                    // Disable the submit button to prevent double submission
+                    if (isValid) {
+                        const submitButton = this.querySelector('button[type="submit"]');
+                        submitButton.disabled = true;
+                        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                    }
+                });
+            }
+            
+            // Add form validation for password change
+            const passwordForm = document.querySelector('#security form');
+            if (passwordForm) {
+                passwordForm.addEventListener('submit', function(e) {
+                    const currentPassword = document.getElementById('current_password');
+                    const newPassword = document.getElementById('new_password');
+                    const confirmPassword = document.getElementById('confirm_password');
+                    
+                    // Validate current password
+                    if (!currentPassword.value.trim()) {
+                        alert('Please enter your current password');
+                        currentPassword.focus();
+                        e.preventDefault();
+                        return;
+                    }
+                    
+                    // Validate new password
+                    if (!newPassword.value.trim()) {
+                        alert('Please enter your new password');
+                        newPassword.focus();
+                        e.preventDefault();
+                        return;
+                    }
+                    
+                    // Check password length
+                    if (newPassword.value.length < 8) {
+                        alert('Password should be at least 8 characters');
+                        newPassword.focus();
+                        e.preventDefault();
+                        return;
+                    }
+                    
+                    // Validate confirmation
+                    if (newPassword.value !== confirmPassword.value) {
+                        alert('New password and confirmation do not match');
+                        confirmPassword.focus();
+                        e.preventDefault();
+                        return;
+                    }
+                    
+                    // Disable the submit button to prevent double submission
+                    const submitButton = this.querySelector('button[type="submit"]');
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+                });
+            }
             
             // Profile picture upload
             const changeProfilePictureBtn = document.getElementById('changeProfilePicture');

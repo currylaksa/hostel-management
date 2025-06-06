@@ -8,12 +8,43 @@ if (!isset($_SESSION["user"]) || $_SESSION["role"] !== "admin") {
 require_once '../shared/includes/db_connection.php';
 
 // Get all students
-$students_query = "SELECT * FROM students ORDER BY student_id ASC";
+$students_query = "SELECT * FROM students ORDER BY id ASC";
 $students_result = $conn->query($students_query);
 $students = [];
 if ($students_result && $students_result->num_rows > 0) {
     while ($row = $students_result->fetch_assoc()) {
         $students[] = $row;
+    }
+}
+
+// Get financial information (bills, payments, and outstanding balances)
+$finance_query = "
+    SELECT 
+        s.id as student_id,
+        s.name as student_name,
+        b.semester,
+        b.academic_year,
+        b.amount as bill_amount,
+        b.due_date,
+        b.status as bill_status,
+        COALESCE(SUM(p.amount), 0) as paid_amount,
+        b.amount - COALESCE(SUM(p.amount), 0) as balance
+    FROM 
+        students s
+    LEFT JOIN 
+        bills b ON s.id = b.student_id
+    LEFT JOIN 
+        payments p ON b.id = p.bill_id AND p.status = 'completed'
+    GROUP BY 
+        s.id, b.id
+    ORDER BY 
+        s.id ASC, b.due_date DESC
+";
+$finance_result = $conn->query($finance_query);
+$finance_data = [];
+if ($finance_result && $finance_result->num_rows > 0) {
+    while ($row = $finance_result->fetch_assoc()) {
+        $finance_data[] = $row;
     }
 }
 
@@ -76,18 +107,16 @@ require_once '../shared/includes/sidebar-admin.php';
                 </div>
             </div>
             <div class="card-content">
-                <div class="table-responsive">
-                    <table class="data-table" id="students-table">
+                <div class="table-responsive">                    <table class="data-table" id="students-table">
                         <thead>
                             <tr>
                                 <th>Student ID</th>
                                 <th>Full Name</th>
-                                <th>Faculty</th>
-                                <th>Program</th>
+                                <th>Course</th>
                                 <th>Email</th>
                                 <th>Phone</th>
-                                <th>Room</th>
-                                <th>Status</th>
+                                <th>Gender</th>
+                                <th>Citizenship</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -95,22 +124,13 @@ require_once '../shared/includes/sidebar-admin.php';
                             <?php if (count($students) > 0): ?>
                                 <?php foreach ($students as $student): ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars($student['student_id']); ?></td>
+                                        <td><?php echo htmlspecialchars($student['id']); ?></td>
                                         <td><?php echo htmlspecialchars($student['name']); ?></td>
-                                        <td><?php echo htmlspecialchars($student['faculty'] ?? 'N/A'); ?></td>
-                                        <td><?php echo htmlspecialchars($student['program'] ?? 'N/A'); ?></td>
+                                        <td><?php echo htmlspecialchars($student['course']); ?></td>
                                         <td><?php echo htmlspecialchars($student['email']); ?></td>
-                                        <td><?php echo htmlspecialchars($student['phone'] ?? 'N/A'); ?></td>
-                                        <td><?php echo htmlspecialchars($student['room_id'] ?? 'Not Assigned'); ?></td>
-                                        <td>
-                                            <?php if ($student['status'] == 'active'): ?>
-                                                <span class="status status-active">Active</span>
-                                            <?php elseif ($student['status'] == 'pending'): ?>
-                                                <span class="status status-pending">Pending</span>
-                                            <?php else: ?>
-                                                <span class="status status-inactive">Inactive</span>
-                                            <?php endif; ?>
-                                        </td>
+                                        <td><?php echo htmlspecialchars($student['contact_no']); ?></td>
+                                        <td><?php echo htmlspecialchars($student['gender']); ?></td>
+                                        <td><?php echo htmlspecialchars($student['citizenship']); ?></td>
                                         <td class="action-buttons">
                                             <a href="javascript:void(0)" onclick="viewStudentDetails(<?php echo $student['id']; ?>)" title="View Details"><i class="fas fa-eye"></i></a>
                                             <a href="javascript:void(0)" onclick="editStudent(<?php echo $student['id']; ?>)" title="Edit Student"><i class="fas fa-edit"></i></a>
@@ -120,7 +140,7 @@ require_once '../shared/includes/sidebar-admin.php';
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="9" class="text-center">No students found in the database</td>
+                                    <td colspan="8" class="text-center">No students found in the database</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -151,14 +171,15 @@ require_once '../shared/includes/sidebar-admin.php';
             </div>
             <div class="card-content">
                 <!-- Finance table content -->
-                <!-- This would be populated from your database -->
-                <div class="table-responsive">
+                <!-- This would be populated from your database -->                <div class="table-responsive">
                     <table class="data-table" id="finance-table">
                         <thead>
                             <tr>
                                 <th>Student ID</th>
                                 <th>Name</th>
                                 <th>Semester</th>
+                                <th>Academic Year</th>
+                                <th>Due Date</th>
                                 <th>Total Fee (RM)</th>
                                 <th>Paid Amount (RM)</th>
                                 <th>Balance (RM)</th>
@@ -167,46 +188,52 @@ require_once '../shared/includes/sidebar-admin.php';
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Example data, would be populated dynamically -->
-                            <tr>
-                                <td>1191301382</td>
-                                <td>Amir Bin Razak</td>
-                                <td>2025A</td>
-                                <td>3,400.00</td>
-                                <td>3,400.00</td>
-                                <td>0.00</td>
-                                <td><span class="status status-paid">Paid</span></td>
-                                <td class="action-buttons">
-                                    <a href="#"><i class="fas fa-eye"></i></a>
-                                    <a href="#"><i class="fas fa-receipt"></i></a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>1191303539</td>
-                                <td>Liu Wei Ming</td>
-                                <td>2025A</td>
-                                <td>3,400.00</td>
-                                <td>1,700.00</td>
-                                <td>1,700.00</td>
-                                <td><span class="status status-pending">Pending</span></td>
-                                <td class="action-buttons">
-                                    <a href="#"><i class="fas fa-eye"></i></a>
-                                    <a href="#"><i class="fas fa-receipt"></i></a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>1191302789</td>
-                                <td>Sarah Abdullah</td>
-                                <td>2025A</td>
-                                <td>3,400.00</td>
-                                <td>0.00</td>
-                                <td>3,400.00</td>
-                                <td><span class="status status-overdue">Overdue</span></td>
-                                <td class="action-buttons">
-                                    <a href="#"><i class="fas fa-eye"></i></a>
-                                    <a href="#"><i class="fas fa-receipt"></i></a>
-                                </td>
-                            </tr>
+                            <?php if (count($finance_data) > 0): ?>
+                                <?php foreach ($finance_data as $finance): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($finance['student_id']); ?></td>
+                                        <td><?php echo htmlspecialchars($finance['student_name']); ?></td>
+                                        <td><?php echo htmlspecialchars($finance['semester'] ?? 'N/A'); ?></td>
+                                        <td><?php echo htmlspecialchars($finance['academic_year'] ?? 'N/A'); ?></td>
+                                        <td><?php echo htmlspecialchars($finance['due_date'] ?? 'N/A'); ?></td>
+                                        <td><?php echo number_format($finance['bill_amount'] ?? 0, 2); ?></td>
+                                        <td><?php echo number_format($finance['paid_amount'] ?? 0, 2); ?></td>
+                                        <td><?php echo number_format($finance['balance'] ?? 0, 2); ?></td>
+                                        <td>
+                                            <?php 
+                                            $status = $finance['bill_status'] ?? 'unknown';
+                                            $statusClass = '';
+                                            
+                                            switch ($status) {
+                                                case 'paid':
+                                                    $statusClass = 'status-paid';
+                                                    break;
+                                                case 'partially_paid':
+                                                    $statusClass = 'status-pending';
+                                                    break;
+                                                case 'unpaid':
+                                                    $statusClass = 'status-inactive';
+                                                    break;
+                                                case 'overdue':
+                                                    $statusClass = 'status-overdue';
+                                                    break;
+                                                default:
+                                                    $statusClass = 'status-inactive';
+                                            }
+                                            ?>
+                                            <span class="status <?php echo $statusClass; ?>"><?php echo ucfirst(str_replace('_', ' ', $status)); ?></span>
+                                        </td>
+                                        <td class="action-buttons">
+                                            <a href="javascript:void(0)" onclick="viewBillDetails(<?php echo $finance['student_id']; ?>)" title="View Bill Details"><i class="fas fa-eye"></i></a>
+                                            <a href="javascript:void(0)" onclick="viewPaymentReceipt(<?php echo $finance['student_id']; ?>)" title="View Receipt"><i class="fas fa-receipt"></i></a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="10" class="text-center">No financial information found</td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -250,9 +277,7 @@ require_once '../shared/includes/footer.php';
             const tabId = this.getAttribute('data-tab');
             document.getElementById(tabId).classList.add('active');
         });
-    });
-
-    // Search functionality for student list
+    });    // Search functionality for student list
     document.getElementById('student-search').addEventListener('keyup', function() {
         const searchTerm = this.value.toLowerCase();
         const table = document.getElementById('students-table');
@@ -262,8 +287,32 @@ require_once '../shared/includes/footer.php';
         for (let i = 1; i < rows.length; i++) {
             const studentId = rows[i].cells[0].textContent.toLowerCase();
             const studentName = rows[i].cells[1].textContent.toLowerCase();
+            const course = rows[i].cells[2].textContent.toLowerCase();
+            const email = rows[i].cells[3].textContent.toLowerCase();
             
-            rows[i].style.display = (studentId.includes(searchTerm) || studentName.includes(searchTerm)) ? '' : 'none';
+            const shouldShow = studentId.includes(searchTerm) || 
+                             studentName.includes(searchTerm) || 
+                             course.includes(searchTerm) || 
+                             email.includes(searchTerm);
+            
+            rows[i].style.display = shouldShow ? '' : 'none';
+        }
+    });
+
+    // Search functionality for finance table
+    document.getElementById('finance-search').addEventListener('keyup', function() {
+        const searchTerm = this.value.toLowerCase();
+        const table = document.getElementById('finance-table');
+        const rows = table.getElementsByTagName('tr');
+        
+        // Start from row 1 to skip header row
+        for (let i = 1; i < rows.length; i++) {
+            const studentId = rows[i].cells[0].textContent.toLowerCase();
+            const studentName = rows[i].cells[1].textContent.toLowerCase();
+            
+            const shouldShow = studentId.includes(searchTerm) || studentName.includes(searchTerm);
+            
+            rows[i].style.display = shouldShow ? '' : 'none';
         }
     });
 
@@ -301,30 +350,24 @@ require_once '../shared/includes/footer.php';
     // Function to redirect to edit student page
     function editStudent(studentId) {
         window.location.href = 'edit_student.php?id=' + studentId;
-    }
-
-    // Function to switch to finance tab and filter for specific student
+    }    // Function to switch to finance tab and filter for specific student
     function viewFinance(studentId) {
         // Switch to finance tab
         document.querySelector('[data-tab="finance-info"]').click();
         
-        // Get the student ID from the first column in the students table
-        const studentTable = document.getElementById('students-table');
-        const rows = studentTable.getElementsByTagName('tr');
-        let studentIdValue = '';
-        
-        for (let i = 1; i < rows.length; i++) {
-            if (rows[i].cells[0].textContent) {
-                studentIdValue = rows[i].cells[0].textContent;
-                break;
+        // Wait a moment for the tab to switch, then set the search
+        setTimeout(() => {
+            const searchBox = document.getElementById('finance-search');
+            if (searchBox) {
+                searchBox.value = studentId;
+                
+                // Trigger the search
+                const event = new Event('keyup');
+                searchBox.dispatchEvent(event);
+                
+                // Focus the search box
+                searchBox.focus();
             }
-        }
-        
-        // Set the search term in the finance search box
-        const searchBox = document.getElementById('finance-search');
-        searchBox.value = studentIdValue;
-        
-        // Trigger the search event
-        searchBox.dispatchEvent(new Event('keyup'));
+        }, 100);
     }
 </script>
