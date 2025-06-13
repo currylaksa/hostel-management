@@ -13,8 +13,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $ic_number = $_POST['ic_number'] ?? '';
     $course = $_POST['course'] ?? '';
     $contact_no = $_POST['contact_no'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $citizenship = $_POST['citizenship'] ?? '';
+    $email = $_POST['email'] ?? '';    $citizenship = $_POST['citizenship'] ?? '';
+    $other_citizenship = $_POST['other_citizenship'] ?? '';
     $address = $_POST['address'] ?? '';
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
@@ -27,6 +27,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $emergency_contact_no = $_POST['emergency_contact_no'] ?? '';
     $emergency_email = $_POST['emergency_email'] ?? '';
     
+    // Process citizenship - use other_citizenship if "Others" is selected
+    if ($citizenship === 'Others' && !empty($other_citizenship)) {
+        $citizenship = $other_citizenship;
+    }
+    
     // Validate form data
     if (empty($name)) $errors[] = "Name is required";
     if (empty($gender)) $errors[] = "Gender is required";
@@ -34,9 +39,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (empty($ic_number)) $errors[] = "IC Number is required";
     if (empty($course)) $errors[] = "Course is required";
     if (empty($contact_no)) $errors[] = "Contact Number is required";
-    if (empty($email)) $errors[] = "Email is required";
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "Invalid email format";
+    if (empty($email)) $errors[] = "Email is required";    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "Invalid email format";
     if (empty($citizenship)) $errors[] = "Citizenship is required";
+    if ($_POST['citizenship'] === 'Others' && empty($other_citizenship)) $errors[] = "Please specify your citizenship";
     if (empty($address)) $errors[] = "Address is required";
     if (empty($username)) $errors[] = "Username is required";
     if (empty($password)) $errors[] = "Password is required";
@@ -285,12 +290,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                         <div class="input-group">
                                             <div class="input-group-prepend">
                                                 <span class="input-group-text"><i class="fas fa-flag"></i></span>
-                                            </div>
-                                            <select name="citizenship" id="citizenship" class="form-control" required>
+                                            </div>                                            <select name="citizenship" id="citizenship" class="form-control" required onchange="toggleOtherCitizenship()">
                                                 <option value="" selected disabled>Select Citizenship</option>
                                                 <option value="Malaysian">Malaysian</option>
                                                 <option value="Others">Others</option>
                                             </select>
+                                        </div>
+                                        <div id="other-citizenship-container" class="mt-2" style="display: none;">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i class="fas fa-edit"></i></span>
+                                                </div>
+                                                <input type="text" name="other_citizenship" id="other_citizenship" class="form-control" placeholder="Please specify your citizenship">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -327,14 +339,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     </div>
                                 </div>
 
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
+                                <div class="form-row">                                    <div class="form-group col-md-6">
                                         <label for="emergency_relationship">Relationship</label>
                                         <div class="input-group">
                                             <div class="input-group-prepend">
                                                 <span class="input-group-text"><i class="fas fa-users"></i></span>
                                             </div>
-                                            <input type="text" name="emergency_relationship" id="emergency_relationship" class="form-control" required>
+                                            <select name="emergency_relationship" id="emergency_relationship" class="form-control" required>
+                                                <option value="" selected disabled>Select Relationship</option>
+                                                <option value="Parent">Parent</option>
+                                                <option value="Sibling">Sibling</option>
+                                                <option value="Legal Guardian">Legal Guardian</option>
+                                                <option value="Significant Other">Significant Other</option>
+                                                <option value="Friend">Friend</option>
+                                                <option value="Employer">Employer</option>
+                                                <option value="Other">Other</option>
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="form-group col-md-6">
@@ -466,10 +486,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         break;
                     case 4:
                         strengthBar.classList.add('very-strong');
-                        break;
-                }
+                        break;                }
             }
         });
+        
+        // Toggle other citizenship input field
+        function toggleOtherCitizenship() {
+            const citizenshipSelect = document.getElementById('citizenship');
+            const otherContainer = document.getElementById('other-citizenship-container');
+            const otherInput = document.getElementById('other_citizenship');
+            
+            if (citizenshipSelect.value === 'Others') {
+                otherContainer.style.display = 'block';
+                otherInput.setAttribute('required', 'required');
+            } else {
+                otherContainer.style.display = 'none';
+                otherInput.removeAttribute('required');
+                otherInput.value = '';
+            }
+        }
     </script>
 </body>
 </html>
