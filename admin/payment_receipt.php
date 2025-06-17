@@ -55,13 +55,13 @@ while ($row = $payments_result->fetch_assoc()) {
 
 // Set page title and additional CSS files
 $pageTitle = "Payment Receipts - " . $student['name'] . " - MMU Hostel Management";
-$additionalCSS = ["css/dashboard.css"];
+$additionalCSS = ["css/header.css"];
 
 // Include header
 require_once '../shared/includes/header.php';
 
 // Include admin sidebar
-require_once '../shared/includes/sidebar-admin.php';
+require_once 'sidebar-admin.php';
 ?>
 
 <!-- Main Content -->
@@ -412,3 +412,4 @@ function printReceipt(paymentId) {
 // Include footer
 require_once '../shared/includes/footer.php';
 ?>
+

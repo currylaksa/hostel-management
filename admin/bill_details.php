@@ -56,37 +56,20 @@ while ($row = $bills_result->fetch_assoc()) {
 
 // Set page title and additional CSS files
 $pageTitle = "Bill Details - " . $student['name'] . " - MMU Hostel Management";
-$additionalCSS = ["css/dashboard.css"];
+$contentTitle = "Bill Details - " . $student['name'];
+$additionalCSS = ["css/header.css"];
 
-// Include header
-require_once '../shared/includes/header.php';
+// Include admin header
+require_once 'admin-header.php';
 
 // Include admin sidebar
-require_once '../shared/includes/sidebar-admin.php';
+require_once 'sidebar-admin.php';
+
+// Include admin content header
+require_once 'admin-content-header.php';
 ?>
 
-<!-- Main Content -->
-<div class="main-content">
-    <div class="header">
-        <h1>Bill Details - <?php echo htmlspecialchars($student['name']); ?></h1>
-        <div class="user-info">
-            <?php 
-            if (isset($_SESSION["profile_image"]) && !empty($_SESSION["profile_image"])) {
-                if (strpos($_SESSION["profile_image"], '../uploads/profile_pictures/') === 0) {
-                    echo '<img src="' . $_SESSION["profile_image"] . '" alt="Admin Profile">';
-                } else {
-                    echo '<img src="../uploads/profile_pictures/' . $_SESSION["profile_image"] . '" alt="Admin Profile">';
-                }
-            } else {
-                echo '<img src="../uploads/profile_pictures/default_admin.png" alt="Admin Profile">';
-            }
-            ?>
-            <span class="user-name"><?php echo $_SESSION["fullname"] ?? $_SESSION["user"]; ?></span>
-            <a href="../logout.php" class="logout-btn">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </div>
-    </div>
+<!-- Bill details content starts here -->
 
     <div class="card">
         <div class="card-header">
@@ -221,6 +204,7 @@ require_once '../shared/includes/sidebar-admin.php';
 </style>
 
 <?php
-// Include footer
-require_once '../shared/includes/footer.php';
+// Include admin footer
+require_once '../shared/includes/admin-footer.php';
 ?>
+

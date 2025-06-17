@@ -7,10 +7,12 @@ $error = false;
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $username = $_POST["username"] ?? '';
     $password = $_POST["password"] ?? '';
-    
+      // Add a small delay to prevent brute force attacks
+    sleep(1);
+
     // Validate login credentials
     if (!empty($username) && !empty($password)) {
-        $stmt = $conn->prepare("SELECT id, name, username, password, profile_pic FROM admins WHERE username = ?");
+        $stmt = $conn->prepare("SELECT id, name, username, password, deleted_at FROM admins WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -18,14 +20,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if ($result->num_rows === 1) {
             $admin = $result->fetch_assoc();
             
+            // Check if account is deleted
+            if ($admin['deleted_at'] !== null) {
+                $error = 'account_disabled';
+            }
             // Verify password
-            if (password_verify($password, $admin['password'])) {
+            else if (password_verify($password, $admin['password'])) {
+                // Update last login time
+                $updateStmt = $conn->prepare("UPDATE admins SET last_login = CURRENT_TIMESTAMP WHERE id = ?");
+                $updateStmt->bind_param("i", $admin['id']);
+                $updateStmt->execute();
+                $updateStmt->close();
+                
                 // Set session variables
                 $_SESSION["user_id"] = $admin['id'];
                 $_SESSION["user"] = $admin['username'];
                 $_SESSION["fullname"] = $admin['name'];
                 $_SESSION["role"] = "admin";
-                $_SESSION["profile_image"] = $admin['profile_pic'] ?? null;
                 
                 // Redirect to dashboard
                 header("Location: dashboard.php");
@@ -59,17 +70,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <div class="card">
                     <div class="card-header bg-primary text-white">
                         <h3 class="text-center">Admin Login</h3>
-                    </div>
-                    <div class="card-body">
+                    </div>                    <div class="card-body">
                         <?php if ($error): ?>
                             <div class="alert alert-danger">
-                                Invalid username or password. Please try again.
-                            </div>
-                        <?php endif; ?>
-                        
-                        <?php if (isset($_GET['registered'])): ?>
-                            <div class="alert alert-success">
-                                Registration successful! Please log in with your credentials.
+                                <?php 
+                                    if ($error === 'account_disabled') {
+                                        echo "This account has been disabled. Please contact the system administrator.";
+                                    } else {
+                                        echo "Invalid username or password. Please try again.";
+                                    }
+                                ?>
                             </div>
                         <?php endif; ?>
                         
@@ -87,10 +97,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <div class="form-group text-center">
                                 <button type="submit" class="btn btn-primary btn-lg">Login</button>
                             </div>
-                            
-                            <div class="text-center">
+                              <div class="text-center">
                                 <p><a href="reset_password.php">Forgot Password?</a></p>
-                                <p>Don't have an account? <a href="signup.php">Sign Up</a></p>
                                 <p><a href="../index.php">Back to Home</a></p>
                             </div>
                         </form>

@@ -30,18 +30,16 @@ SET time_zone = "+00:00";
 CREATE TABLE `admins` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
-  `gender` enum('Male','Female','Other') NOT NULL,
-  `dob` date NOT NULL,
   `ic_number` varchar(20) NOT NULL,
   `contact_no` varchar(20) NOT NULL,
   `email` varchar(100) NOT NULL,
-  `citizenship` enum('Malaysian','Others') NOT NULL,
-  `address` text NOT NULL,
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
   `profile_pic` varchar(255) DEFAULT NULL,
-  `office_number` varchar(50) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `office_number` varchar(20) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_login` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -148,16 +146,7 @@ CREATE TABLE `hostel_blocks` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `hostel_blocks`
---
-
-INSERT INTO `hostel_blocks` (`id`, `block_name`, `gender_restriction`, `nationality_restriction`, `description`, `created_at`) VALUES
-(1, 'Block B', 'Female', 'None', 'Female dormitory with common kitchen and laundry facilities', '2025-05-14 16:38:57'),
-(2, 'Block C', 'Mixed', 'None', 'Mixed gender block for senior students with suite-style accommodations', '2025-05-14 16:38:57'),
-(3, 'Block D', 'Male', 'Local', 'Specialized block for local male students with traditional facilities', '2025-05-14 16:38:57'),
-(4, 'Block E', 'Female', 'International', 'Designated block for international female students with integrated cultural spaces', '2025-05-14 16:38:57'),
-(5, 'Block F', 'Mixed', 'Mixed', 'Premium accommodation block with enhanced amenities and 24/7 security', '2025-05-14 16:38:57');
+-- No sample data for hostel blocks - to be added through the admin interface
 
 -- --------------------------------------------------------
 
@@ -182,12 +171,7 @@ CREATE TABLE `hostel_registrations` (
   `processed_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `hostel_registrations`
---
-
-INSERT INTO `hostel_registrations` (`id`, `student_id`, `room_id`, `registration_date`, `requested_check_in_date`, `approved_check_in_date`, `approved_check_out_date`, `status`, `payment_status`, `total_amount`, `paid_amount`, `notes`, `admin_id`, `processed_at`) VALUES
-(11, 1, 1, '2025-05-14 10:49:53', '2025-05-21', NULL, NULL, 'Pending', 'Unpaid', NULL, 0.00, NULL, NULL, NULL);
+-- No sample data for hostel registrations - to be added through the registration interface
 
 -- --------------------------------------------------------
 
@@ -246,8 +230,7 @@ CREATE TABLE `payments` (
   `id` int(11) NOT NULL,
   `bill_id` int(11) NOT NULL,
   `student_id` int(11) NOT NULL,
-  `amount` decimal(10,2) NOT NULL,
-  `payment_method` enum('credit_card','bank_transfer','cash','other') NOT NULL,
+  `amount` decimal(10,2) NOT NULL,  `payment_method` enum('credit_card','bank_transfer','cash','other') NOT NULL,
   `reference_number` varchar(50) DEFAULT NULL,
   `payment_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `status` enum('pending','completed','failed','refunded') DEFAULT 'completed',
@@ -297,8 +280,7 @@ CREATE TABLE `request_status_history` (
 CREATE TABLE `rooms` (
   `id` int(11) NOT NULL,
   `block_id` int(11) NOT NULL,
-  `room_number` varchar(10) NOT NULL,
-  `type` enum('Single','Double','Triple','Quad') NOT NULL,
+  `room_number` varchar(10) NOT NULL,  `type` enum('Single','Double','Triple','Quad') NOT NULL,
   `capacity` int(11) NOT NULL DEFAULT 1,
   `price` decimal(10,2) NOT NULL,
   `features` text DEFAULT NULL,
@@ -307,52 +289,9 @@ CREATE TABLE `rooms` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `rooms`
---
+-- No sample data for rooms - to be added through the admin interface
 
-INSERT INTO `rooms` (`id`, `block_id`, `room_number`, `type`, `capacity`, `price`, `features`, `availability_status`, `created_at`, `updated_at`) VALUES
-(1, 1, '1-111', 'Single', 1, 1000.00, '\'Air-conditioned, Study desk, Single bed, Wardrobe, Window view\'', 'Pending Confirmation', '2025-05-14 16:44:27', '2025-05-14 16:49:53'),
-(2, 2, '2-111', 'Double', 1, 2000.00, '\'Air-conditioned, Study desk, Single bed, Wardrobe, Window view\'', 'Available', '2025-05-14 16:48:07', '2025-05-14 16:48:07'),
-(3, 3, '3-111', 'Triple', 1, 1500.00, '\'Air-conditioned, Study desk, Single bed, Wardrobe, Window view\'', 'Available', '2025-05-14 16:48:07', '2025-05-14 16:48:07'),
-(33, 1, '101', 'Single', 1, 500.00, 'Attached bathroom, Wi-Fi, Study Table, Wardrobe', 'Available', '2025-05-14 17:18:23', '2025-05-14 17:18:23'),
-(34, 1, '102', 'Double', 2, 350.00, 'Shared bathroom, Wi-Fi, Study Table, Wardrobe', 'Available', '2025-05-14 17:18:23', '2025-05-14 17:18:23'),
-(35, 2, '201', 'Single', 1, 500.00, 'Attached bathroom, Wi-Fi, Study Table, Wardrobe', 'Available', '2025-05-14 17:18:23', '2025-05-14 17:18:23'),
-(36, 2, '202', 'Double', 2, 350.00, 'Shared bathroom, Wi-Fi, Study Table, Wardrobe', 'Available', '2025-05-14 17:18:23', '2025-05-14 17:18:23'),
-(37, 3, '301', 'Single', 1, 600.00, 'Attached bathroom, Air-Conditioning, Wi-Fi, Study Table, Wardrobe', 'Available', '2025-05-14 17:18:23', '2025-05-14 17:18:23'),
-(38, 4, '401', 'Double', 2, 450.00, 'Shared bathroom, Air-Conditioning, Wi-Fi, Study Table, Wardrobe', 'Available', '2025-05-14 17:18:23', '2025-05-14 17:18:23');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `room_rates`
---
-
-CREATE TABLE `room_rates` (
-  `id` int(11) NOT NULL,
-  `room_type` varchar(50) NOT NULL,
-  `block` varchar(10) NOT NULL,
-  `price_per_semester` decimal(10,2) NOT NULL,
-  `description` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `room_rates`
---
-
-INSERT INTO `room_rates` (`id`, `room_type`, `block`, `price_per_semester`, `description`, `created_at`, `updated_at`) VALUES
-(1, 'Single Room', 'Block A', 2500.00, 'Single room with private bathroom for local male students', '2025-05-15 08:27:38', '2025-05-15 08:27:38'),
-(2, 'Twin Sharing', 'Block A', 1800.00, 'Twin sharing room with shared bathroom for local male students', '2025-05-15 08:27:38', '2025-05-15 08:27:38'),
-(3, 'Triple Room', 'Block A', 1500.00, 'Triple sharing room with shared bathroom for local male students', '2025-05-15 08:27:38', '2025-05-15 08:27:38'),
-(4, 'Single Room', 'Block B', 2500.00, 'Single room with private bathroom for local female students', '2025-05-15 08:27:38', '2025-05-15 08:27:38'),
-(5, 'Twin Sharing', 'Block B', 1800.00, 'Twin sharing room with shared bathroom for local female students', '2025-05-15 08:27:38', '2025-05-15 08:27:38'),
-(6, 'Triple Room', 'Block B', 1500.00, 'Triple sharing room with shared bathroom for local female students', '2025-05-15 08:27:38', '2025-05-15 08:27:38'),
-(7, 'Single Room', 'Block C', 3000.00, 'Single room with private bathroom for international male students', '2025-05-15 08:27:38', '2025-05-15 08:27:38'),
-(8, 'Twin Sharing', 'Block C', 2200.00, 'Twin sharing room with shared bathroom for international male students', '2025-05-15 08:27:38', '2025-05-15 08:27:38'),
-(9, 'Single Room', 'Block D', 3000.00, 'Single room with private bathroom for international female students', '2025-05-15 08:27:38', '2025-05-15 08:27:38'),
-(10, 'Twin Sharing', 'Block D', 2200.00, 'Twin sharing room with shared bathroom for international female students', '2025-05-15 08:27:38', '2025-05-15 08:27:38');
+-- Room rates are managed directly in the rooms table with the price field
 
 -- --------------------------------------------------------
 
@@ -362,8 +301,7 @@ INSERT INTO `room_rates` (`id`, `room_type`, `block`, `price_per_semester`, `des
 
 CREATE TABLE `service_requests` (
   `id` int(11) NOT NULL,
-  `student_id` int(11) NOT NULL,
-  `request_type` enum('maintenance','checkout','room_exchange','room_cleaning','internet_issue','furniture','other') NOT NULL,
+  `student_id` int(11) NOT NULL,  `request_type` enum('maintenance','checkout','room_exchange','room_cleaning','internet_issue','furniture','other') NOT NULL,
   `subject` varchar(200) NOT NULL,
   `description` text NOT NULL,
   `preferred_date` date DEFAULT NULL,
@@ -388,8 +326,7 @@ CREATE TABLE `service_requests` (
 
 CREATE TABLE `students` (
   `id` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `gender` enum('Male','Female','Other') NOT NULL,
+  `name` varchar(100) NOT NULL,  `gender` enum('Male','Female','Other') NOT NULL,
   `dob` date NOT NULL,
   `ic_number` varchar(20) NOT NULL,
   `course` varchar(100) NOT NULL,
@@ -400,15 +337,12 @@ CREATE TABLE `students` (
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
   `profile_pic` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `last_login` timestamp NULL DEFAULT NULL,
+  `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `students`
---
-
-INSERT INTO `students` (`id`, `name`, `gender`, `dob`, `ic_number`, `course`, `contact_no`, `email`, `citizenship`, `address`, `username`, `password`, `profile_pic`, `created_at`) VALUES
-(1, 'lcs', 'Male', '2025-05-02', '11111111', 'aaa', '111111', 'example@gmail.com', 'Malaysian', '1111122', 'lcs', '$2y$10$VU1mb4XadddElEAyxCWRYeKqN8MJSedGleQ7dFhKECARbzy7QZ89C', NULL, '2025-05-14 16:12:48');
+-- No sample student data - this will be added through the registration system
 
 -- --------------------------------------------------------
 
@@ -418,8 +352,7 @@ INSERT INTO `students` (`id`, `name`, `gender`, `dob`, `ic_number`, `course`, `c
 
 CREATE TABLE `visitors` (
   `id` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `gender` enum('Male','Female','Other') NOT NULL,
+  `name` varchar(100) NOT NULL,  `gender` enum('Male','Female','Other') NOT NULL,
   `ic_number` varchar(20) NOT NULL,
   `contact_no` varchar(20) NOT NULL,
   `car_plate` varchar(20) DEFAULT NULL,
@@ -547,11 +480,7 @@ ALTER TABLE `rooms`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `unique_room_in_block` (`block_id`,`room_number`);
 
---
--- Indexes for table `room_rates`
---
-ALTER TABLE `room_rates`
-  ADD PRIMARY KEY (`id`);
+-- Room rates table removed
 
 --
 -- Indexes for table `service_requests`
@@ -670,11 +599,7 @@ ALTER TABLE `request_status_history`
 ALTER TABLE `rooms`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
---
--- AUTO_INCREMENT for table `room_rates`
---
-ALTER TABLE `room_rates`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+-- Room rates table removed
 
 --
 -- AUTO_INCREMENT for table `service_requests`
@@ -787,3 +712,16 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+-- Add check constraints for validation
+ALTER TABLE `rooms` 
+ADD CONSTRAINT `price_check` CHECK (`price` > 0),
+ADD CONSTRAINT `capacity_check` CHECK (`capacity` > 0);
+
+-- Add indices for frequent searches
+ALTER TABLE `hostel_registrations` 
+ADD INDEX `registration_date_index` (`registration_date`);
+
+ALTER TABLE `complaints` 
+ADD INDEX `status_created_at_index` (`status`, `created_at`);
+
+-- --------------------------------------------------------

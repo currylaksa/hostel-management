@@ -103,13 +103,11 @@ session_start();
             </div>
             <?php endif; ?>
             
-            <div class="role-container">
-                <div class="role-card">
+            <div class="role-container">                <div class="role-card">
                     <i class="fas fa-user-shield icon admin-icon"></i>
                     <h3>Admin</h3>
                     <p>Hostel administration and management</p>
                     <a href="admin/login.php" class="btn btn-primary btn-block">Login</a>
-                    <a href="admin/signup.php" class="btn btn-outline-primary btn-block">Sign Up</a>
                 </div>
                 
                 <div class="role-card">

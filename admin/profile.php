@@ -5,6 +5,9 @@ if (!isset($_SESSION["user"]) || $_SESSION["role"] !== "admin") {
     exit();
 }
 
+require_once "../shared/includes/db_connection.php";
+require_once "../shared/includes/profile-forms.php";
+
 // Reset form data if returning to the page or after form submission
 if (isset($_GET['reset']) && $_GET['reset'] == 'true') {
     // Clear any form data in session
@@ -33,40 +36,8 @@ if (isset($_SESSION['form_submitted']) && $_SESSION['form_submitted'] === true) 
     exit();
 }
 
-require_once "../shared/includes/db_connection.php";
-
-// Handle form submission first
-$message = "";
-$messageType = "";
-
-// Always fetch the latest data from the database first
-$username = $_SESSION["user"];
-$sql = "SELECT * FROM admins WHERE username = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $username);
-$stmt->execute();
-$result = $stmt->get_result();
-
-$name = "";
-$email = "";
-$phone = "";
-$office_number = "";
-$profile_picture = "";
-$admin = null;
-
-if ($result->num_rows > 0) {
-    $admin = $result->fetch_assoc();
-    $name = $admin["name"];
-    $email = $admin["email"];
-    $phone = $admin["contact_no"];
-    $office_number = $admin["office_number"];
-    $profile_picture = $admin["profile_pic"];
-    
-    // Update session with the name from database
-    $_SESSION["fullname"] = $name;
-}
-
-$stmt->close();
+// Include the profile logic file that handles database operations and form processing
+require_once "admin-profile-logic.php";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Add a log to ensure we're getting POST data
@@ -207,21 +178,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION["profile_message_type"] = "error";
             } else {
                 // Verify MIME type
-                if (in_array($filetype, $allowed)) {                    // Generate unique filename
+                if (in_array($filetype, $allowed)) {
+                    // Generate unique filename
                     $new_filename = "admin_" . $username . "_" . time() . "." . $ext;
-                    $upload_dir = "uploads/profile_pictures/";
+                    $upload_dir = "../uploads/profile_pictures/";
                     
-                    // Create directory if it doesn't exist - make the path absolute
-                    $absolute_upload_dir = __DIR__ . "/" . $upload_dir;
-                    if (!file_exists($absolute_upload_dir)) {
-                        mkdir($absolute_upload_dir, 0777, true);
+                    // Create directory if it doesn't exist
+                    if (!file_exists($upload_dir)) {
+                        mkdir($upload_dir, 0777, true);
                     }
-                      // Move the file
+                    
+                    $absolute_upload_dir = realpath($upload_dir) . "/";
+                    
+                    // Move the file
                     if (move_uploaded_file($_FILES["profile_picture"]["tmp_name"], $absolute_upload_dir . $new_filename)) {
                         // Update database with new profile picture path
                         $profile_pic_sql = "UPDATE admins SET profile_pic = ? WHERE username = ?";
                         $profile_pic_stmt = $conn->prepare($profile_pic_sql);
-                        $profile_pic_path = $upload_dir . $new_filename; // Store the relative path in database
+                        $profile_pic_path = "uploads/profile_pictures/" . $new_filename; // Store the path relative to root
                         $profile_pic_stmt->bind_param("ss", $profile_pic_path, $username);
                         
                         if ($profile_pic_stmt->execute()) {
@@ -243,11 +217,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 }
             }
         }
-          // Redirect after profile picture upload to avoid resubmission
+        
+        // Redirect after profile picture upload to avoid resubmission
         header("Location: profile.php?reset=true");
         exit();
     }
-      // Handle password change
+    
+    // Handle password change
     if (isset($_POST["change_password"])) {
         $current_password = $_POST["current_password"];
         $new_password = $_POST["new_password"];
@@ -329,99 +305,40 @@ if (isset($_SESSION["profile_message"])) {
     unset($_SESSION["profile_message_type"]);
 }
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MMU Hostel Management - Admin Profile</title>    <link rel="stylesheet" href="../shared/css/style.css">
-    <link rel="stylesheet" href="css/dashboard.css">
-    <link rel="stylesheet" href="css/profile.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <h2>MMU Hostel</h2>
-                <p>Admin Portal</p>
-            </div>            <div class="sidebar-menu">
-                <a href="dashboard.php" class="menu-item">
-                    <i class="fas fa-tachometer-alt"></i> Dashboard
-                </a>
-                
-                <div class="menu-category">Student Management</div>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-user-graduate"></i> Students
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-clipboard-list"></i> Applications
-                </a>
-                
-                <div class="menu-category">Accommodation</div>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-building"></i> Hostel Blocks
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-door-open"></i> Rooms
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-bed"></i> Room Allocation
-                </a>
-                
-                <div class="menu-category">Operations</div>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-file-invoice-dollar"></i> Billing
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-hand-holding-usd"></i> Payments
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-tools"></i> Maintenance
-                </a>
-                
-                <div class="menu-category">Communication</div>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-bullhorn"></i> Announcements
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-envelope"></i> Messages
-                </a>
-                  <div class="menu-category">Admin</div>
-                <a href="profile.php?reset=true" class="menu-item active">
-                    <i class="fas fa-user-circle"></i> My Profile
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-user-shield"></i> Staff
-                </a>
-                <a href="#" class="menu-item">
-                    <i class="fas fa-cog"></i> Settings
-                </a>
-            </div>
-        </div>
+<?php
+// Set page title and additional CSS files
+$pageTitle = "MMU Hostel Management - Admin Profile";
+$additionalCSS = ["css/dashboard.css", "css/profile.css"];
 
-        <!-- Main Content -->
+// Include header
+require_once '../shared/includes/header.php';
+
+// Include admin sidebar
+require_once 'sidebar-admin.php';
+?>
+
+<!-- Main Content -->
         <div class="main-content">
             <div class="header">
                 <h1>Admin Profile</h1>
-                <div class="user-info">
-                    <?php                    // Get the profile image path from the database or use a default
+                <div class="user-info">                    <?php
+                    // Get the profile image path from the database or use a default
                     if (isset($admin['profile_pic']) && !empty($admin['profile_pic'])) {
                         $profile_image = $admin['profile_pic'];
-                        // Make sure the path is correct
-                        if (!file_exists($profile_image) && file_exists("../" . $profile_image)) {
+                        // Make sure the path is relative to admin directory
+                        if (!file_exists($profile_image)) {
                             $profile_image = "../" . $profile_image;
                         }
                     } else {
-                        // Use a default profile image that definitely exists
-                        if (file_exists("uploads/profile_pictures/default_admin.png")) {
-                            $profile_image = "uploads/profile_pictures/default_admin.png";
-                        } else if (file_exists("../uploads/profile_pictures/default_admin.png")) {
-                            $profile_image = "../uploads/profile_pictures/default_admin.png";
-                        } else {
-                            // If no default image exists, use a placeholder
-                            $profile_image = "https://via.placeholder.com/150";
+                        // Use default profile image from admin/uploads/profile_pictures
+                        $profile_image = "../admin/uploads/profile_pictures/default_admin.png";
+                        // Fallback to other locations if not found
+                        if (!file_exists($profile_image)) {
+                            if (file_exists("../uploads/profile_pictures/default_admin.png")) {
+                                $profile_image = "../uploads/profile_pictures/default_admin.png";
+                            } else {
+                                $profile_image = "https://via.placeholder.com/150";
+                            }
                         }
                     }
                     
@@ -429,8 +346,7 @@ if (isset($_SESSION["profile_message"])) {
                     $_SESSION["profile_image"] = $profile_image;
                     ?>
                     <img src="<?php echo $profile_image; ?>" alt="Admin Profile">
-                    <span class="user-name"><?php echo $_SESSION["fullname"] ?? $_SESSION["user"]; ?></span>
-                    <a href="logout.php" class="logout-btn">
+                    <span class="user-name"><?php echo $_SESSION["fullname"] ?? $_SESSION["user"]; ?></span>                    <a href="../logout.php" class="logout-btn">
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </a>
                 </div>
@@ -473,87 +389,10 @@ if (isset($_SESSION["profile_message"])) {
                     <div class="profile-tab" data-tab="security">
                         <i class="fas fa-lock"></i> Security
                     </div>
-                </div>
-
-                <div class="tab-content active" id="edit-profile">
-                    <div class="form-section-header">
-                        <h3>Update your profile information below</h3>
-                        <p>Fill in only the fields you want to update and click "Save Changes" when you're done.</p>
-                    </div>                    <form action="" method="post">
-                        <div class="form-section">
-                            <h3><i class="fas fa-user"></i> Personal Information</h3>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="name">Full Name</label>
-                                    <input type="text" class="form-control" id="name" name="name" value="<?php echo $name; ?>" placeholder="Enter your full name" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="email">Email Address</label>
-                                    <input type="email" class="form-control" id="email" name="email" value="<?php echo $email; ?>" placeholder="Enter your email address" required>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-section">
-                            <h3><i class="fas fa-phone"></i> Contact Information</h3>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="phone">Phone Number</label>
-                                    <input type="text" class="form-control" id="phone" name="contact_no" value="<?php echo $phone; ?>" placeholder="Enter your phone number" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="office_number">Office Number</label>
-                                    <input type="text" class="form-control" id="office_number" name="office_number" value="<?php echo $office_number; ?>" placeholder="Enter your office number">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-section">
-                            <h3><i class="fas fa-user-shield"></i> Account Information</h3>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="admin_username">Username</label>
-                                    <input type="text" class="form-control" id="admin_username" name="username" value="<?php echo $_SESSION["user"]; ?>" placeholder="Enter your username" readonly>
-                                    <small class="form-text text-muted">Username cannot be changed</small>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
-                            <input type="hidden" name="update_profile" value="1">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Save Profile Changes
-                            </button>
-                        </div>
-                    </form>
-                </div>                <div class="tab-content" id="security">
-                    <div class="form-section">
-                        <h3><i class="fas fa-key"></i> Change Password</h3>
-                        <form action="" method="post">
-                            <div class="form-group">
-                                <label for="current_password">Current Password</label>
-                                <input type="password" class="form-control" id="current_password" name="current_password" required>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="new_password">New Password</label>
-                                    <input type="password" class="form-control" id="new_password" name="new_password" required>
-                                    <small class="form-text text-muted">Password should be at least 8 characters</small>
-                                </div>
-                                <div class="form-group">
-                                    <label for="confirm_password">Confirm New Password</label>
-                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                                </div>
-                            </div>
-                            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
-                                <input type="hidden" name="change_password" value="1">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-key"></i> Update Password
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                </div>                <?php
+                display_profile_edit_form($name, $email, $phone, $office_number, $_SESSION["user"]);
+                display_security_form();
+                ?>
             </div>
         </div>
     </div>    <script>
